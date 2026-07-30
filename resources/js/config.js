@@ -1,7 +1,7 @@
 const defaults = {
     apiBase: '/cortex',
     basePath: '/cortex/ui',
-    auth: { mode: 'session', token: null },
+    auth: { mode: 'session', token: null, oauth: null },
     csrfToken: null,
 };
 

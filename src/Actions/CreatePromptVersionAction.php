@@ -7,9 +7,12 @@ namespace JayI\Cortex\Actions;
 use Illuminate\Support\Facades\DB;
 use JayI\Cortex\Models\Prompt;
 use JayI\Cortex\Models\PromptVersion;
+use JayI\Cortex\Support\PublicationCache;
 
 final class CreatePromptVersionAction
 {
+    public function __construct(private readonly PublicationCache $cache) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -36,6 +39,8 @@ final class CreatePromptVersionAction
             if ($data['publish'] ?? false) {
                 $prompt->published_version_id = $version->getKey();
                 $prompt->save();
+
+                $this->cache->forget($this->cache->promptKey((string) $prompt->getKey()));
             }
 
             return $version;

@@ -1,3 +1,5 @@
+import { createCortexClient } from '@jayi/cortex-sdk';
+import { authDriver } from '../auth';
 import config from '../config';
 
 export class ApiError extends Error {
@@ -8,80 +10,55 @@ export class ApiError extends Error {
     }
 }
 
-function xsrfTokenFromCookie() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+/**
+ * Dispatch a request with the active auth driver's headers, retrying once
+ * with refreshed credentials when the driver supports it.
+ */
+async function authedFetch(input) {
+    const request = input instanceof Request ? input : new Request(input);
 
-    return match ? decodeURIComponent(match[1]) : null;
-}
+    const attempt = async (refresh) => {
+        const clone = request.clone();
 
-async function bearerToken(refresh = false) {
-    if (typeof window.CortexToken === 'function') {
-        return await window.CortexToken(refresh);
-    }
-
-    return config.auth.token;
-}
-
-async function authHeaders(refresh = false) {
-    if (config.auth.mode === 'token') {
-        const token = await bearerToken(refresh);
-
-        return token ? { Authorization: `Bearer ${token}` } : {};
-    }
-
-    const xsrf = xsrfTokenFromCookie();
-
-    if (xsrf) {
-        return { 'X-XSRF-TOKEN': xsrf };
-    }
-
-    return config.csrfToken ? { 'X-CSRF-TOKEN': config.csrfToken } : {};
-}
-
-async function send(method, path, { query, body } = {}, retrying = false) {
-    const url = new URL(config.apiBase + path, window.location.origin);
-
-    for (const [key, value] of Object.entries(query ?? {})) {
-        if (value !== null && value !== undefined && value !== '') {
-            url.searchParams.set(key, value);
+        for (const [key, value] of Object.entries(await authDriver().headers(refresh))) {
+            clone.headers.set(key, value);
         }
+
+        return globalThis.fetch(clone, { credentials: 'same-origin' });
+    };
+
+    let response = await attempt(false);
+
+    if (response.status === 401 && (authDriver().retriesOn401?.() ?? false)) {
+        response = await attempt(true);
     }
 
-    const response = await fetch(url, {
-        method,
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            ...(body ? { 'Content-Type': 'application/json' } : {}),
-            ...(await authHeaders(retrying)),
-        },
-        body: body ? JSON.stringify(body) : undefined,
-    });
+    return response;
+}
 
-    if (response.status === 401 && config.auth.mode === 'token' && !retrying && typeof window.CortexToken === 'function') {
-        return send(method, path, { query, body }, true);
-    }
+/**
+ * The generated OpenAPI client. Spec paths carry the /cortex prefix, so the
+ * base URL is the API origin.
+ */
+export const sdk = createCortexClient({
+    baseUrl: new URL(config.apiBase, window.location.origin).origin,
+    fetch: authedFetch,
+});
 
-    if (response.status === 204) {
-        return null;
-    }
-
-    const payload = await response.json().catch(() => null);
+/**
+ * Convert an openapi-fetch result into the payload-or-throw shape the views
+ * consume.
+ */
+export async function unwrap(promise) {
+    const { data, error, response } = await promise;
 
     if (!response.ok) {
         throw new ApiError(
             response.status,
-            payload?.message ?? `Request failed with status ${response.status}.`,
-            payload?.errors ?? {},
+            error?.message ?? `Request failed with status ${response.status}.`,
+            error?.errors ?? {},
         );
     }
 
-    return payload;
+    return data ?? null;
 }
-
-export default {
-    get: (path, query) => send('GET', path, { query }),
-    post: (path, body) => send('POST', path, { body }),
-    patch: (path, body) => send('PATCH', path, { body }),
-    delete: (path) => send('DELETE', path),
-};

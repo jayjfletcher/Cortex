@@ -33,6 +33,7 @@ onMounted(async () => {
                     <th>Name</th>
                     <th>Description</th>
                     <th>Schema</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -40,6 +41,11 @@ onMounted(async () => {
                     <td>{{ tool.name }}</td>
                     <td>{{ tool.description }}</td>
                     <td><pre>{{ JSON.stringify(tool.schema, null, 2) }}</pre></td>
+                    <td>
+                        <router-link class="button" :to="{ name: 'tools.description', params: { tool: tool.name } }">
+                            Description
+                        </router-link>
+                    </td>
                 </tr>
             </tbody>
         </table>

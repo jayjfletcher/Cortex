@@ -22,6 +22,8 @@ class CortexServiceProvider extends ServiceProvider
 
         $this->app->singleton(Tools\ToolRegistry::class);
 
+        $this->app->scoped(Tools\ToolDescriptionOverrides::class);
+
         $this->app->singleton(Cortex::class);
     }
 

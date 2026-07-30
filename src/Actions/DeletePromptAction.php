@@ -6,9 +6,12 @@ namespace JayI\Cortex\Actions;
 
 use Illuminate\Validation\ValidationException;
 use JayI\Cortex\Models\Prompt;
+use JayI\Cortex\Support\PublicationCache;
 
 final class DeletePromptAction
 {
+    public function __construct(private readonly PublicationCache $cache) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -26,5 +29,7 @@ final class DeletePromptAction
         }
 
         $prompt->delete();
+
+        $this->cache->forget($this->cache->promptKey((string) $prompt->getKey()));
     }
 }

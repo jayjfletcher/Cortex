@@ -41,6 +41,16 @@ While iterating, run `npm run watch` alongside `composer serve`. The workbench c
 ln -sfn "$(pwd)/public" vendor/orchestra/testbench-core/laravel/public/vendor/cortex
 ```
 
+## TypeScript SDK
+
+The dashboard consumes `@jayi/cortex-sdk` (an npm workspace in `sdk/`), a typed client generated from the API's OpenAPI spec. After changing routes, request rules, or resources, regenerate and rebuild it:
+
+```bash
+npm run sdk:build
+```
+
+That exports `sdk/openapi.json` via Scramble (`testbench scramble:export`), regenerates `sdk/src/schema.d.ts`, and compiles `sdk/dist/`. Commit the regenerated spec, schema, and dist output, then rebuild the dashboard bundle (`npm run build`) so it picks up the new types.
+
 ## Lint
 
 Lint your code:

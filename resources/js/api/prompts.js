@@ -1,13 +1,13 @@
-import client from './client';
+import { sdk, unwrap } from './client';
 
 export default {
-    list: (page = 1) => client.get('/prompts', { page }),
-    create: (attributes) => client.post('/prompts', attributes),
-    show: (slug) => client.get(`/prompts/${slug}`),
-    update: (slug, attributes) => client.patch(`/prompts/${slug}`, attributes),
-    destroy: (slug) => client.delete(`/prompts/${slug}`),
-    versions: (slug, page = 1) => client.get(`/prompts/${slug}/versions`, { page }),
-    version: (slug, version) => client.get(`/prompts/${slug}/versions/${version}`),
-    createVersion: (slug, attributes) => client.post(`/prompts/${slug}/versions`, attributes),
-    publishVersion: (slug, version) => client.post(`/prompts/${slug}/versions/${version}/publish`),
+    list: (page = 1) => unwrap(sdk.GET('/cortex/prompts', { params: { query: { page } } })),
+    create: (attributes) => unwrap(sdk.POST('/cortex/prompts', { body: attributes })),
+    show: (slug) => unwrap(sdk.GET('/cortex/prompts/{prompt}', { params: { path: { prompt: slug } } })),
+    update: (slug, attributes) => unwrap(sdk.PATCH('/cortex/prompts/{prompt}', { params: { path: { prompt: slug } }, body: attributes })),
+    destroy: (slug) => unwrap(sdk.DELETE('/cortex/prompts/{prompt}', { params: { path: { prompt: slug } } })),
+    versions: (slug, page = 1) => unwrap(sdk.GET('/cortex/prompts/{prompt}/versions', { params: { path: { prompt: slug }, query: { page } } })),
+    version: (slug, version) => unwrap(sdk.GET('/cortex/prompts/{prompt}/versions/{version}', { params: { path: { prompt: slug, version } } })),
+    createVersion: (slug, attributes) => unwrap(sdk.POST('/cortex/prompts/{prompt}/versions', { params: { path: { prompt: slug } }, body: attributes })),
+    publishVersion: (slug, version) => unwrap(sdk.POST('/cortex/prompts/{prompt}/versions/{version}/publish', { params: { path: { prompt: slug, version } } })),
 };

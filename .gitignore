@@ -10,3 +10,5 @@ composer.lock
 .DS_Store
 .idea
 .vscode
+sdk/node_modules
+sdk/dist

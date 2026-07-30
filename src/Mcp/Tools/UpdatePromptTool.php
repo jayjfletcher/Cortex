@@ -6,10 +6,10 @@ namespace JayI\Cortex\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use JayI\Cortex\Mcp\Requests\UpdatePromptMcpRequest;
+use JayI\Cortex\Tools\Tool;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
 
 #[Description('Update a Cortex prompt\'s name or description. Content changes require creating a new version instead.')]
 final class UpdatePromptTool extends Tool

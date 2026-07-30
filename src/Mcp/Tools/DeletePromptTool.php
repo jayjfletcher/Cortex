@@ -6,10 +6,10 @@ namespace JayI\Cortex\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use JayI\Cortex\Mcp\Requests\DeletePromptMcpRequest;
+use JayI\Cortex\Tools\Tool;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
 
 #[Description('Delete a Cortex prompt and all of its versions. Fails if the prompt is attached to any agent.')]
 final class DeletePromptTool extends Tool

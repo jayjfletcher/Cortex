@@ -29,5 +29,5 @@ on new PHP classes, strict_types arch rules.
 
 ## package-compatibility (local skill)
 
-New PHP code must hold across PHP ^8.4 and Laravel 12/13 (illuminate/support
-^12.62||^13.15) with Testbench 10/11. No compiled-asset impact on the matrix.
+New PHP code must hold across PHP ^8.4 and Laravel 13 (illuminate/support
+^13.15) with Testbench 11. No compiled-asset impact on the matrix.

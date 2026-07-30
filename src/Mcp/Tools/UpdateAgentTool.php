@@ -7,10 +7,10 @@ namespace JayI\Cortex\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use JayI\Cortex\Mcp\Requests\UpdateAgentMcpRequest;
 use JayI\Cortex\Mcp\Tools\Concerns\DescribesAgentPayload;
+use JayI\Cortex\Tools\Tool;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
 
 #[Description('Update a Cortex agent. The tools and sub_agents lists replace the current lists entirely; set prompt to change instructions.')]
 final class UpdateAgentTool extends Tool

@@ -7,10 +7,10 @@ namespace JayI\Cortex\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use JayI\Cortex\Mcp\Requests\CreateAgentMcpRequest;
 use JayI\Cortex\Mcp\Tools\Concerns\DescribesAgentPayload;
+use JayI\Cortex\Tools\Tool;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
 
 #[Description('Create a Cortex agent. Attach a prompt for instructions, registered tools, and sub-agents to delegate to.')]
 final class CreateAgentTool extends Tool

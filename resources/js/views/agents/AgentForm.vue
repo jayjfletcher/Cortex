@@ -1,8 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import agents from '../../api/agents';
 import prompts from '../../api/prompts';
+import providers from '../../api/providers';
 import tools from '../../api/tools';
 import fetchAllPages from '../../api/paginate';
 import { ApiError } from '../../api/client';
@@ -33,6 +34,33 @@ const form = ref({
 const toolOptions = ref([]);
 const promptOptions = ref([]);
 const agentOptions = ref([]);
+const providerOptions = ref([]);
+
+// Options include the saved value even when the provider list no longer
+// offers it, so editing an agent never silently drops its configuration.
+const providerNames = computed(() => {
+    const names = providerOptions.value.map((provider) => provider.name);
+
+    if (form.value.provider && !names.includes(form.value.provider)) {
+        names.unshift(form.value.provider);
+    }
+
+    return names;
+});
+
+const modelOptions = computed(() => {
+    const selected = providerOptions.value.find((provider) => provider.name === form.value.provider);
+
+    const models = selected
+        ? [...selected.models]
+        : [...new Set(providerOptions.value.flatMap((provider) => provider.models))];
+
+    if (form.value.model && !models.includes(form.value.model)) {
+        models.unshift(form.value.model);
+    }
+
+    return models;
+});
 
 const errors = ref({});
 const error = ref(null);
@@ -41,13 +69,15 @@ const saving = ref(false);
 
 onMounted(async () => {
     try {
-        const [toolsResponse, promptItems, agentItems] = await Promise.all([
+        const [toolsResponse, promptItems, agentItems, providersResponse] = await Promise.all([
             tools.list(),
             fetchAllPages(prompts.list),
             fetchAllPages(agents.list),
+            providers.list(),
         ]);
 
         toolOptions.value = toolsResponse.data;
+        providerOptions.value = providersResponse.data;
         promptOptions.value = promptItems;
         agentOptions.value = agentItems.filter((agent) => agent.slug !== props.slug);
 
@@ -72,6 +102,21 @@ onMounted(async () => {
         error.value = e.message;
     } finally {
         loading.value = false;
+    }
+});
+
+// Switching provider swaps the model to that provider's default unless the
+// current model is valid there. Skipped while the form hydrates so a saved
+// custom model is never clobbered on load.
+watch(() => form.value.provider, (name) => {
+    if (loading.value) {
+        return;
+    }
+
+    const selected = providerOptions.value.find((provider) => provider.name === name);
+
+    if (selected && !selected.models.includes(form.value.model)) {
+        form.value.model = selected.default_model ?? '';
     }
 });
 
@@ -148,12 +193,18 @@ async function save() {
             </div>
             <div class="field">
                 <label for="provider">Provider</label>
-                <input id="provider" v-model="form.provider" type="text" placeholder="e.g. anthropic" />
+                <select id="provider" v-model="form.provider">
+                    <option value="">Provider default</option>
+                    <option v-for="name in providerNames" :key="name" :value="name">{{ name }}</option>
+                </select>
                 <FieldErrors :errors="errors" field="provider" />
             </div>
             <div class="field">
                 <label for="model">Model</label>
-                <input id="model" v-model="form.model" type="text" placeholder="e.g. claude-sonnet-5" />
+                <select id="model" v-model="form.model">
+                    <option value="">Provider default</option>
+                    <option v-for="model in modelOptions" :key="model" :value="model">{{ model }}</option>
+                </select>
                 <FieldErrors :errors="errors" field="model" />
             </div>
 

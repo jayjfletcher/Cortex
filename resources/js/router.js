@@ -7,6 +7,7 @@ import AgentsIndex from './views/agents/AgentsIndex.vue';
 import AgentForm from './views/agents/AgentForm.vue';
 import RunAgent from './views/RunAgent.vue';
 import ToolsIndex from './views/ToolsIndex.vue';
+import ToolDescription from './views/ToolDescription.vue';
 
 export default createRouter({
     history: createWebHistory(config.basePath),
@@ -21,6 +22,7 @@ export default createRouter({
         { path: '/agents/:slug/edit', name: 'agents.edit', component: AgentForm, props: true },
         { path: '/run', name: 'run', component: RunAgent },
         { path: '/tools', name: 'tools.index', component: ToolsIndex },
+        { path: '/tools/:tool/description', name: 'tools.description', component: ToolDescription, props: true },
         { path: '/:pathMatch(.*)*', redirect: '/prompts' },
     ],
 });

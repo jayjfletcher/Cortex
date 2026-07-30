@@ -6,6 +6,7 @@ namespace JayI\Cortex\Actions;
 
 use JayI\Cortex\Tools\ToolRegistry;
 use Laravel\Ai\Contracts\Tool;
+use Laravel\Mcp\Server\Tool as McpTool;
 
 final class ListToolsAction
 {
@@ -20,7 +21,7 @@ final class ListToolsAction
     public function __construct(private readonly ToolRegistry $registry) {}
 
     /**
-     * @return list<array{name: string, class: class-string<Tool>, description: string, schema: array<string, mixed>}>
+     * @return list<array{name: string, class: class-string<Tool>|class-string<McpTool>, description: string, schema: array<string, mixed>}>
      */
     public function execute(): array
     {

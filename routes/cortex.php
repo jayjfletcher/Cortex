@@ -7,7 +7,9 @@ use JayI\Cortex\Http\Controllers\AgentController;
 use JayI\Cortex\Http\Controllers\AgentRunController;
 use JayI\Cortex\Http\Controllers\PromptController;
 use JayI\Cortex\Http\Controllers\PromptVersionController;
+use JayI\Cortex\Http\Controllers\ProviderController;
 use JayI\Cortex\Http\Controllers\ToolController;
+use JayI\Cortex\Http\Controllers\ToolDescriptionController;
 
 /** @var string $prefix */
 $prefix = config('cortex.routes.prefix');
@@ -37,5 +39,14 @@ Route::prefix($prefix)->middleware($middleware)->name('cortex.')->group(function
 
     Route::post('agents/{agent:slug}/run', [AgentRunController::class, 'store'])->name('agents.run');
 
+    Route::get('providers', [ProviderController::class, 'index'])->name('providers.index');
+
     Route::get('tools', [ToolController::class, 'index'])->name('tools.index');
+
+    Route::get('tools/{tool}/description', [ToolDescriptionController::class, 'show'])->name('tools.description.show');
+    Route::delete('tools/{tool}/description', [ToolDescriptionController::class, 'destroy'])->name('tools.description.destroy');
+    Route::get('tools/{tool}/description/versions', [ToolDescriptionController::class, 'versions'])->name('tools.description.versions.index');
+    Route::post('tools/{tool}/description/versions', [ToolDescriptionController::class, 'store'])->name('tools.description.versions.store');
+    Route::post('tools/{tool}/description/versions/{version}/publish', [ToolDescriptionController::class, 'publish'])
+        ->whereNumber('version')->name('tools.description.versions.publish');
 });

@@ -2,8 +2,9 @@
 name: cortex-development
 description: >
   Configure and apply the Cortex package in Laravel applications: versioned
-  prompts, a tool registry, and DB-backed AI agents exposed through a REST
-  API, a prebuilt dashboard, and an MCP server with tool parity.
+  prompts, a tool registry with versioned description overrides, and
+  DB-backed AI agents exposed through a REST API, a prebuilt
+  dashboard, an MCP server, and a TypeScript SDK.
 license: MIT
 metadata:
   author: Jay Fletcher
@@ -49,7 +50,7 @@ The API routes, dashboard, and MCP server manage **and execute** agents. MCP tra
 
 ### 3. Enable the dashboard (optional)
 
-A prebuilt dashboard (prompts, agents, run playground, tools) mounts at `/cortex/ui`. Publish its compiled assets — no npm build in the app:
+A prebuilt dashboard (prompts, agents, run playground, tools, tool description overrides) mounts at `/cortex/ui`. Publish its compiled assets — no npm build in the app:
 
 ```bash
 php artisan vendor:publish --tag="cortex-assets"          # re-run with --force after package updates
@@ -58,7 +59,7 @@ php artisan vendor:publish --tag="cortex-assets"          # re-run with --force 
 The dashboard authenticates its API calls via `ui.auth.mode`:
 
 - `session` (default): sends cookies + CSRF. Pair `'routes' => ['middleware' => ['web', 'auth']]` with `'ui' => ['middleware' => ['web', 'auth']]`.
-- `token`: sends `Authorization: Bearer` from a resolver implementing `JayI\Cortex\Contracts\UiTokenResolver` (works with Sanctum/JWT/OAuth tokens):
+- `token`: sends `Authorization: Bearer` from a resolver implementing `JayI\Cortex\Contracts\UiTokenResolver` (works with Sanctum/JWT tokens):
 
 ```php
 'ui' => [
@@ -67,20 +68,28 @@ The dashboard authenticates its API calls via `ui.auth.mode`:
 ],
 ```
 
+- `oauth`: authorization-code + PKCE flow in the browser (public client, e.g. Passport). Configure `ui.auth.oauth` — `client_id`, `authorize_url`, `token_url`, `scopes`.
+- `custom`: host page defines a `window.CortexAuth` driver (`headers(refresh)`, optional `boot()` and `retriesOn401()`) before the dashboard script loads.
+
 Set `'ui' => ['enabled' => false]` to remove the dashboard route entirely.
 
 ### 4. Register tools
 
-Tools are classes implementing `Laravel\Ai\Contracts\Tool` (`description()`, `handle()`, `schema()`), registered by name:
+Tools implement `Laravel\Ai\Contracts\Tool` (`description()`, `handle()`, `schema()`) or extend `Laravel\Mcp\Server\Tool` (wrapped for agent use automatically). String config keys set the registered name; unkeyed entries derive it from the tool:
 
 ```php
 // config/cortex.php
-'tools' => ['search' => \App\Ai\Tools\SearchTool::class],
+'tools' => [
+    'search' => \App\Ai\Tools\SearchTool::class,
+    \App\Mcp\Tools\LookupTool::class,
+],
 
 // or at runtime (e.g. in a service provider):
 use JayI\Cortex\Facades\Cortex;
 Cortex::tools()->register('search', \App\Ai\Tools\SearchTool::class);
 ```
+
+To let a tool's description be overridden at runtime (versioned + published like prompts), extend `JayI\Cortex\Tools\Tool` or use the `JayI\Cortex\Tools\Concerns\HasVersionedDescription` trait. Manage overrides from the dashboard or `/cortex/tools/{tool}/description` endpoints.
 
 ### 5. Manage prompts and agents via the API (or MCP tools)
 
@@ -89,9 +98,15 @@ Cortex::tools()->register('search', \App\Ai\Tools\SearchTool::class);
 - `POST /cortex/prompts/{slug}/versions/{version}/publish` — move the published pointer (rollback = publish an older version).
 - `POST /cortex/agents` — `{name, slug, provider?, model?, settings?, tools?, prompt?, prompt_version?, sub_agents?}`. `tools` are registered tool names; `prompt` is a prompt slug; omit `prompt_version` to follow the published version; `sub_agents` are agent slugs. `tools`/`sub_agents` use sync semantics (send the full desired list). Circular sub-agent references are rejected.
 - `POST /cortex/agents/{slug}/run` `{input}` — execute; returns `{text, usage}`.
+- `GET /cortex/providers` — providers with models and default model. Curate via `cortex.providers` config (authoritative when non-empty); otherwise every text-capable laravel/ai provider is offered.
 - `GET /cortex/tools` — registered tools with JSON schemas.
+- `GET|DELETE /cortex/tools/{tool}/description`, `GET|POST .../description/versions`, `POST .../versions/{version}/publish` — versioned tool description overrides.
 
-The MCP server (`JayI\Cortex\Mcp\CortexServer`) exposes the same 16 operations as MCP tools.
+The MCP server (`JayI\Cortex\Mcp\CortexServer`) exposes the prompt, agent, and tool-list operations as 16 MCP tools; the provider and tool-description endpoints are HTTP-only.
+
+Published prompt content and description overrides are cached (`cortex.cache` config: Redis preferred with stale-while-revalidate, other stores cache until publish invalidates; disable with `'cache' => ['enabled' => false]`).
+
+For custom frontends, `@jayi/cortex-sdk` (npm) is a typed openapi-fetch client: `createCortexClient({ baseUrl, accessToken? })` — `baseUrl` is the origin only; spec paths include the `/cortex` prefix.
 
 ### 6. Run agents from code
 
@@ -122,8 +137,8 @@ Always fake — unfaked runs require a configured AI provider.
 
 Read before executing:
 
-- `config/cortex.php` — routes, dashboard, MCP transports, tools
-- `README.md` — full route table and payload examples
+- `config/cortex.php` — routes, dashboard, MCP transports, cache, providers, tools
+- `README.md` — full route table, auth modes, and payload examples
 
 ## Examples
 
@@ -133,7 +148,7 @@ Read before executing:
 ## Anti-patterns
 
 - do not document package internals here; keep the skill focused on adoption in Laravel apps
-- do not edit prompt version content — versions are immutable; create a new version and publish it
+- do not edit prompt version content — versions are immutable; create a new version and publish it (tool description override versions work the same way)
 - do not enable the MCP web transport or expose the routes or dashboard without auth middleware
 - do not rebuild dashboard assets in the consuming app — publish the compiled bundle with `--tag="cortex-assets"`
 - do not attach tool class names to agents — attach the registered tool *names* from the registry

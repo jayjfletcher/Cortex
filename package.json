@@ -1,12 +1,18 @@
 {
     "private": true,
     "type": "module",
+    "workspaces": [
+        "sdk"
+    ],
     "scripts": {
         "build": "vite build",
         "watch": "vite build --watch",
-        "dev": "vite build --watch"
+        "dev": "vite build --watch",
+        "sdk:generate": "php vendor/bin/testbench scramble:export && npm run --prefix sdk generate",
+        "sdk:build": "npm run sdk:generate && npm run --prefix sdk build"
     },
     "dependencies": {
+        "@jayi/cortex-sdk": "0.1.0",
         "vue": "^3.5.0",
         "vue-router": "^4.5.0"
     },

@@ -81,3 +81,23 @@ it('rejects resolvers that do not implement the contract', function () {
 
     $this->withoutExceptionHandling()->get('/cortex/ui');
 })->throws(RuntimeException::class);
+
+it('injects the oauth driver config in oauth mode', function () {
+    config()->set('cortex.ui.auth.mode', 'oauth');
+    config()->set('cortex.ui.auth.oauth.client_id', 'dashboard-client');
+    config()->set('cortex.ui.auth.oauth.scopes', ['api:use']);
+
+    $this->get('/cortex/ui')->assertOk()->assertViewHas('cortexConfig', function (array $config): bool {
+        return $config['auth']['mode'] === 'oauth'
+            && $config['auth']['oauth']['clientId'] === 'dashboard-client'
+            && str_ends_with($config['auth']['oauth']['authorizeUrl'], '/oauth/authorize')
+            && str_ends_with($config['auth']['oauth']['tokenUrl'], '/oauth/token')
+            && $config['auth']['oauth']['scopes'] === ['api:use'];
+    });
+});
+
+it('omits the oauth config outside oauth mode', function () {
+    $this->get('/cortex/ui')->assertOk()->assertViewHas('cortexConfig', function (array $config): bool {
+        return $config['auth']['oauth'] === null;
+    });
+});

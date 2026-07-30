@@ -2,7 +2,8 @@ laravel: '@testbench'
 
 providers:
   - JayI\Cortex\CortexServiceProvider
-  # - Workbench\App\Providers\WorkbenchServiceProvider
+  - Dedoc\Scramble\ScrambleServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
   - workbench/database/migrations

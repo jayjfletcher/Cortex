@@ -7,11 +7,15 @@ namespace JayI\Cortex\Runtime;
 use JayI\Cortex\Exceptions\CircularAgentReferenceException;
 use JayI\Cortex\Exceptions\PromptNotPublishedException;
 use JayI\Cortex\Models\Agent;
+use JayI\Cortex\Support\PublicationCache;
 use JayI\Cortex\Tools\ToolRegistry;
 
 final class AgentFactory
 {
-    public function __construct(private readonly ToolRegistry $registry) {}
+    public function __construct(
+        private readonly ToolRegistry $registry,
+        private readonly PublicationCache $cache,
+    ) {}
 
     /**
      * @param  list<string>  $visited
@@ -52,12 +56,20 @@ final class AgentFactory
             return $agent->pinnedVersion->content;
         }
 
-        $published = $agent->prompt->publishedVersion;
+        $prompt = $agent->prompt;
 
-        if ($published === null) {
-            throw PromptNotPublishedException::forPrompt($agent->prompt);
+        // Cached until a new version is published; the publishing actions
+        // invalidate the key. Unpublished prompts resolve to null, which is
+        // never cached, so publishing takes effect immediately.
+        $published = $this->cache->remember(
+            $this->cache->promptKey((string) $prompt->getKey()),
+            fn (): ?string => $prompt->publishedVersion?->content,
+        );
+
+        if (! is_string($published)) {
+            throw PromptNotPublishedException::forPrompt($prompt);
         }
 
-        return $published->content;
+        return $published;
     }
 }

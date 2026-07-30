@@ -6,10 +6,10 @@ namespace JayI\Cortex\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use JayI\Cortex\Mcp\Requests\PublishPromptVersionMcpRequest;
+use JayI\Cortex\Tools\Tool;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Tool;
 
 #[Description('Publish a specific version of a Cortex prompt, making it the version agents use by default.')]
 final class PublishPromptVersionTool extends Tool

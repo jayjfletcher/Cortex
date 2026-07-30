@@ -14,13 +14,21 @@ final class UiController
 {
     public function __invoke(Request $request, Factory $view): View
     {
+        $mode = (string) config('cortex.ui.auth.mode', 'session');
+
         return $view->make('cortex::app', [
             'cortexConfig' => [
                 'apiBase' => url((string) config('cortex.routes.prefix', 'cortex')),
                 'basePath' => '/'.trim((string) config('cortex.ui.path', 'cortex/ui'), '/'),
                 'auth' => [
-                    'mode' => (string) config('cortex.ui.auth.mode', 'session'),
+                    'mode' => $mode,
                     'token' => $this->resolveToken($request),
+                    'oauth' => $mode === 'oauth' ? [
+                        'clientId' => (string) config('cortex.ui.auth.oauth.client_id'),
+                        'authorizeUrl' => url((string) config('cortex.ui.auth.oauth.authorize_url', '/oauth/authorize')),
+                        'tokenUrl' => url((string) config('cortex.ui.auth.oauth.token_url', '/oauth/token')),
+                        'scopes' => array_values((array) config('cortex.ui.auth.oauth.scopes', [])),
+                    ] : null,
                 ],
                 'csrfToken' => $request->hasSession() ? $request->session()->token() : null,
             ],
