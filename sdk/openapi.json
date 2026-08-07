@@ -106,7 +106,7 @@
                         "required": true,
                         "description": "The agent slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -149,7 +149,7 @@
                         "required": true,
                         "description": "The agent slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -201,7 +201,7 @@
                         "required": true,
                         "description": "The agent slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -231,7 +231,7 @@
                         "required": true,
                         "description": "The agent slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -266,6 +266,247 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/cortex/servers/{server}/instructions": {
+            "get": {
+                "operationId": "cortex.servers.instructions.show",
+                "tags": [
+                    "McpInstruction"
+                ],
+                "parameters": [
+                    {
+                        "name": "server",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`McpInstructionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/McpInstructionResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "cortex.servers.instructions.destroy",
+                "tags": [
+                    "McpInstruction"
+                ],
+                "parameters": [
+                    {
+                        "name": "server",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/cortex/servers/{server}/instructions/versions": {
+            "get": {
+                "operationId": "cortex.servers.instructions.versions.index",
+                "tags": [
+                    "McpInstruction"
+                ],
+                "parameters": [
+                    {
+                        "name": "server",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `McpInstructionVersionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/McpInstructionVersionResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "cortex.servers.instructions.versions.store",
+                "tags": [
+                    "McpInstruction"
+                ],
+                "parameters": [
+                    {
+                        "name": "server",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreMcpInstructionVersionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`McpInstructionVersionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/McpInstructionVersionResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/cortex/servers/{server}/instructions/versions/{version}/publish": {
+            "post": {
+                "operationId": "cortex.servers.instructions.versions.publish",
+                "tags": [
+                    "McpInstruction"
+                ],
+                "parameters": [
+                    {
+                        "name": "server",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`McpInstructionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/McpInstructionResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/cortex/servers": {
+            "get": {
+                "operationId": "cortex.servers.index",
+                "tags": [
+                    "McpServer"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `McpServerResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/McpServerResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
@@ -369,7 +610,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -412,7 +653,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -464,7 +705,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -494,7 +735,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -548,7 +789,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -603,7 +844,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -656,7 +897,7 @@
                         "required": true,
                         "description": "The prompt slug",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -981,25 +1222,41 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "provider": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "model": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "settings": {
-                        "type": "string"
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
                     },
                     "tools": {
-                        "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "prompt": {
                         "type": "string"
                     },
                     "prompt_version": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "sub_agents": {
                         "type": "array",
@@ -1047,6 +1304,79 @@
                 ],
                 "title": "AgentRunResource"
             },
+            "McpInstructionResource": {
+                "type": "object",
+                "properties": {
+                    "server": {
+                        "type": "string"
+                    },
+                    "published_version": {
+                        "type": "integer"
+                    },
+                    "published_content": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "server",
+                    "published_version",
+                    "published_content",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "McpInstructionResource"
+            },
+            "McpInstructionVersionResource": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "type": "integer"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "version",
+                    "content",
+                    "created_at"
+                ],
+                "title": "McpInstructionVersionResource"
+            },
+            "McpServerResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "instructions": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "instructions"
+                ],
+                "title": "McpServerResource"
+            },
             "PromptResource": {
                 "type": "object",
                 "properties": {
@@ -1057,7 +1387,10 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "published_version": {
                         "$ref": "#/components/schemas/PromptVersionResource"
@@ -1088,7 +1421,7 @@
                 "type": "object",
                 "properties": {
                     "version": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "content": {
                         "type": "string"
@@ -1205,7 +1538,8 @@
                         "type": "array",
                         "items": {
                             "type": "string"
-                        }
+                        },
+                        "uniqueItems": true
                     }
                 },
                 "required": [
@@ -1213,6 +1547,21 @@
                     "slug"
                 ],
                 "title": "StoreAgentRequest"
+            },
+            "StoreMcpInstructionVersionRequest": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    },
+                    "publish": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "content"
+                ],
+                "title": "StoreMcpInstructionVersionRequest"
             },
             "StorePromptRequest": {
                 "type": "object",
@@ -1282,7 +1631,7 @@
                         "type": "string"
                     },
                     "published_version": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "published_content": {
                         "type": "string"
@@ -1313,7 +1662,7 @@
                 "type": "object",
                 "properties": {
                     "version": {
-                        "type": "string"
+                        "type": "integer"
                     },
                     "content": {
                         "type": "string"
@@ -1434,7 +1783,8 @@
                         "type": "array",
                         "items": {
                             "type": "string"
-                        }
+                        },
+                        "uniqueItems": true
                     }
                 },
                 "title": "UpdateAgentRequest"

@@ -64,6 +64,13 @@ return [
     | disabled by default. When enabling the web transport, add auth
     | middleware - the server manages and executes agents.
     |
+    | The `servers` list holds MCP server classes whose instructions Cortex
+    | manages (versioned overrides replacing the code-declared value when
+    | published). Cortex's own server is always registered as 'cortex'.
+    | String keys set the server's registered name; unkeyed entries
+    | derive it from the class. Servers may also be registered at
+    | runtime via Cortex::servers()->register($name, $class).
+    |
     */
 
     'mcp' => [
@@ -76,6 +83,9 @@ return [
             'enabled' => false,
             'handle' => 'cortex',
         ],
+        'servers' => [
+            // 'support' => \App\Mcp\SupportServer::class,
+        ],
     ],
 
     /*
@@ -83,9 +93,10 @@ return [
     | Publication Cache
     |--------------------------------------------------------------------------
     |
-    | Published prompt versions and tool description overrides are cached so
-    | agent runs and MCP listings don't hit the database on every request;
-    | the publishing actions invalidate explicitly. When Redis is
+    | Published prompt versions, tool description overrides, and MCP server
+    | instruction overrides are cached so agent runs and MCP listings don't
+    | hit the database on every request; the publishing actions invalidate
+    | explicitly. When Redis is
     | available it is preferred and read via Cache::flexible()
     | (fresh/stale seconds below); any other store caches
     | until invalidation. Set `store` to pin a store, or

@@ -9,6 +9,8 @@ use Illuminate\Support\ServiceProvider;
 use JayI\Cortex\Console\Commands\CortexCommand;
 use JayI\Cortex\Http\Controllers\UiController;
 use JayI\Cortex\Mcp\CortexServer;
+use JayI\Cortex\Mcp\McpInstructionOverrides;
+use JayI\Cortex\Mcp\McpServerRegistry;
 use Laravel\Mcp\Facades\Mcp;
 
 class CortexServiceProvider extends ServiceProvider
@@ -23,6 +25,10 @@ class CortexServiceProvider extends ServiceProvider
         $this->app->singleton(Tools\ToolRegistry::class);
 
         $this->app->scoped(Tools\ToolDescriptionOverrides::class);
+
+        $this->app->singleton(McpServerRegistry::class);
+
+        $this->app->scoped(McpInstructionOverrides::class);
 
         $this->app->singleton(Cortex::class);
     }

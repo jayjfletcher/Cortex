@@ -52,6 +52,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cortex/servers/{server}/instructions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["cortex.servers.instructions.show"];
+        put?: never;
+        post?: never;
+        delete: operations["cortex.servers.instructions.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cortex/servers/{server}/instructions/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["cortex.servers.instructions.versions.index"];
+        put?: never;
+        post: operations["cortex.servers.instructions.versions.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cortex/servers/{server}/instructions/versions/{version}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cortex.servers.instructions.versions.publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cortex/servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["cortex.servers.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cortex/prompts": {
         parameters: {
             query?: never;
@@ -220,13 +284,15 @@ export interface components {
         AgentResource: {
             name: string;
             slug: string;
-            description: string;
-            provider: string;
-            model: string;
-            settings: string;
-            tools: string;
+            description: string | null;
+            provider: string | null;
+            model: string | null;
+            settings: {
+                [key: string]: unknown;
+            } | null;
+            tools: string[];
             prompt?: string;
-            prompt_version?: string;
+            prompt_version?: number;
             sub_agents?: unknown[];
             created_at: string | null;
             updated_at: string | null;
@@ -236,18 +302,37 @@ export interface components {
             text: string;
             usage: string;
         };
+        /** McpInstructionResource */
+        McpInstructionResource: {
+            server: string;
+            published_version: number;
+            published_content: string;
+            created_at: string | null;
+            updated_at: string | null;
+        };
+        /** McpInstructionVersionResource */
+        McpInstructionVersionResource: {
+            version: number;
+            content: string;
+            created_at: string | null;
+        };
+        /** McpServerResource */
+        McpServerResource: {
+            name: string;
+            instructions: string;
+        };
         /** PromptResource */
         PromptResource: {
             name: string;
             slug: string;
-            description: string;
+            description: string | null;
             published_version?: components["schemas"]["PromptVersionResource"];
             created_at: string | null;
             updated_at: string | null;
         };
         /** PromptVersionResource */
         PromptVersionResource: {
-            version: string;
+            version: number;
             content: string;
             created_at: string | null;
         };
@@ -273,6 +358,11 @@ export interface components {
             prompt_version?: number | null;
             sub_agents?: string[];
         };
+        /** StoreMcpInstructionVersionRequest */
+        StoreMcpInstructionVersionRequest: {
+            content: string;
+            publish?: boolean;
+        };
         /** StorePromptRequest */
         StorePromptRequest: {
             name: string;
@@ -294,14 +384,14 @@ export interface components {
         /** ToolDescriptionResource */
         ToolDescriptionResource: {
             tool: string;
-            published_version: string;
+            published_version: number;
             published_content: string;
             created_at: string | null;
             updated_at: string | null;
         };
         /** ToolDescriptionVersionResource */
         ToolDescriptionVersionResource: {
-            version: string;
+            version: number;
             content: string;
             created_at: string | null;
         };
@@ -429,7 +519,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The agent slug */
-                agent: number;
+                agent: string;
             };
             cookie?: never;
         };
@@ -456,7 +546,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The agent slug */
-                agent: number;
+                agent: string;
             };
             cookie?: never;
         };
@@ -479,7 +569,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The agent slug */
-                agent: number;
+                agent: string;
             };
             cookie?: never;
         };
@@ -510,7 +600,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The agent slug */
-                agent: number;
+                agent: string;
             };
             cookie?: never;
         };
@@ -532,6 +622,155 @@ export interface operations {
                 };
             };
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cortex.servers.instructions.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `McpInstructionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["McpInstructionResource"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cortex.servers.instructions.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cortex.servers.instructions.versions.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `McpInstructionVersionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["McpInstructionVersionResource"][];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cortex.servers.instructions.versions.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreMcpInstructionVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `McpInstructionVersionResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["McpInstructionVersionResource"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cortex.servers.instructions.versions.publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `McpInstructionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["McpInstructionResource"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "cortex.servers.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `McpServerResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["McpServerResource"][];
+                    };
+                };
+            };
             422: components["responses"]["ValidationException"];
         };
     };
@@ -593,7 +832,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
             };
             cookie?: never;
         };
@@ -620,7 +859,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
             };
             cookie?: never;
         };
@@ -643,7 +882,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
             };
             cookie?: never;
         };
@@ -676,7 +915,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
             };
             cookie?: never;
         };
@@ -703,7 +942,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
             };
             cookie?: never;
         };
@@ -734,7 +973,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
                 version: number;
             };
             cookie?: never;
@@ -762,7 +1001,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description The prompt slug */
-                prompt: number;
+                prompt: string;
                 version: number;
             };
             cookie?: never;

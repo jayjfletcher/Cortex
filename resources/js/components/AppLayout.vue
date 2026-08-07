@@ -7,6 +7,7 @@
                 <router-link :to="{ name: 'agents.index' }">Agents</router-link>
                 <router-link :to="{ name: 'run' }">Run</router-link>
                 <router-link :to="{ name: 'tools.index' }">Tools</router-link>
+                <router-link :to="{ name: 'servers.index' }">Servers</router-link>
             </nav>
         </aside>
         <main class="content">

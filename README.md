@@ -14,6 +14,7 @@ AI orchestration for Laravel. Cortex manages **prompts (with immutable versionin
 
 - **Prompts** are versioned: content is immutable per version, and a published pointer decides what agents use. Roll back by publishing an older version.
 - **Tools** are PHP classes implementing `Laravel\Ai\Contracts\Tool` or extending `Laravel\Mcp\Server\Tool` (wrapped automatically), registered by name in the Cortex tool registry. Their descriptions can be overridden at runtime with versioned, publishable content.
+- **MCP servers** registered with Cortex get the same treatment for their instructions: versioned, publishable overrides that replace the code-declared instructions served to MCP clients, manageable over HTTP, MCP, and the dashboard.
 - **Agents** are database records that combine a prompt (published or pinned version), registered tools, provider/model settings, and other agents as sub-agents. Run them via the API, the dashboard, the MCP server, or the `Cortex` facade.
 
 ## Installation
@@ -89,7 +90,7 @@ return [
 
 ## Dashboard
 
-Cortex ships a prebuilt dashboard (no npm build required in your app) covering prompts and versions, agents, a run playground, the tool registry, and a versioned editor for tool description overrides. Publish the assets and visit `/cortex/ui`:
+Cortex ships a prebuilt dashboard (no npm build required in your app) covering prompts and versions, agents, a run playground, the tool registry, a versioned editor for tool description overrides, and the MCP server registry with a versioned editor for server instruction overrides. Publish the assets and visit `/cortex/ui`:
 
 ```bash
 php artisan vendor:publish --tag="cortex-assets"
@@ -221,6 +222,10 @@ Everything is available over the REST API (prefix `cortex` by default):
 | GET/DELETE | `/cortex/tools/{tool}/description` | Show / remove the description override |
 | GET/POST | `/cortex/tools/{tool}/description/versions` | List / create immutable override versions |
 | POST | `/cortex/tools/{tool}/description/versions/{version}/publish` | Publish an override version |
+| GET | `/cortex/servers` | List registered MCP servers with their effective instructions |
+| GET/DELETE | `/cortex/servers/{server}/instructions` | Show / remove the instruction override |
+| GET/POST | `/cortex/servers/{server}/instructions/versions` | List / create immutable override versions |
+| POST | `/cortex/servers/{server}/instructions/versions/{version}/publish` | Publish an override version |
 
 Agent create/update payloads accept `tools` (registered tool names), `prompt` (prompt slug), `prompt_version` (pin a version; omit to follow the published version), and `sub_agents` (agent slugs). The `tools` and `sub_agents` lists use sync semantics — send the desired end state. Circular sub-agent references are rejected.
 
@@ -264,11 +269,11 @@ The dashboard's agent form offers providers and models from `GET /cortex/provide
 
 ## Publication Cache
 
-Published prompt content and tool description overrides are cached so agent runs and tool listings don't hit the database on every request; publishing invalidates explicitly. When Redis is available it is preferred and read via `Cache::flexible()` using the `cache.fresh`/`cache.stale` windows (stale-while-revalidate); any other store caches until invalidation. Pin a store with `cache.store`, or set `cache.enabled` to `false` to read from the database on every pull.
+Published prompt content, tool description overrides, and MCP server instruction overrides are cached so agent runs, tool listings, and MCP handshakes don't hit the database on every request; publishing invalidates explicitly. When Redis is available it is preferred and read via `Cache::flexible()` using the `cache.fresh`/`cache.stale` windows (stale-while-revalidate); any other store caches until invalidation. Pin a store with `cache.store`, or set `cache.enabled` to `false` to read from the database on every pull.
 
 ## MCP Server
 
-The `CortexServer` exposes the prompt, agent, and tool operations as MCP tools (16 tools: prompt CRUD + versions + publish, agent CRUD, list tools, run agent). The provider and tool-description endpoints are HTTP-only. Enable a transport in the config:
+The `CortexServer` exposes the prompt, agent, tool, and server-instruction operations as MCP tools (22 tools: prompt CRUD + versions + publish, agent CRUD, list tools, run agent, server instructions + versions + publish). The provider and tool-description endpoints are HTTP-only. Enable a transport in the config:
 
 ```php
 'mcp' => [
@@ -285,6 +290,20 @@ use Laravel\Mcp\Facades\Mcp;
 
 Mcp::web('/mcp/cortex', CortexServer::class)->middleware(['auth:sanctum']);
 ```
+
+### Server Instruction Overrides
+
+An MCP server's code-declared instructions (the `#[Instructions]` attribute or `$instructions` property) can be overridden without a deploy: each registered server has an optional, immutably versioned instruction override with a published pointer — same model as prompts and tool descriptions. Manage overrides from the dashboard, the API (`/cortex/servers/{server}/instructions`), or the MCP tools.
+
+Cortex's own server is always registered as `cortex`. Register additional servers in `config/cortex.php` under `mcp.servers` (string keys set the registered name; unkeyed entries derive it from the server's `#[Name]` attribute or class basename), or at runtime:
+
+```php
+use JayI\Cortex\Facades\Cortex;
+
+Cortex::servers()->register('support', \App\Mcp\SupportServer::class);
+```
+
+For the published override to actually be served to MCP clients, the server class must extend `JayI\Cortex\Mcp\Server` (or use the `JayI\Cortex\Mcp\Concerns\HasVersionedInstructions` trait if it cannot change its base class). Unregistered servers, and servers with no published version, keep serving their code-declared instructions.
 
 ## TypeScript SDK
 

@@ -2,9 +2,10 @@
 name: cortex-development
 description: >
   Configure and apply the Cortex package in Laravel applications: versioned
-  prompts, a tool registry with versioned description overrides, and
-  DB-backed AI agents exposed through a REST API, a prebuilt
-  dashboard, an MCP server, and a TypeScript SDK.
+  prompts, a tool registry with versioned description overrides, an MCP
+  server registry with versioned instruction overrides, and DB-backed
+  AI agents exposed through a REST API, a prebuilt dashboard, an
+  MCP server, and a TypeScript SDK.
 license: MIT
 metadata:
   author: Jay Fletcher
@@ -50,7 +51,7 @@ The API routes, dashboard, and MCP server manage **and execute** agents. MCP tra
 
 ### 3. Enable the dashboard (optional)
 
-A prebuilt dashboard (prompts, agents, run playground, tools, tool description overrides) mounts at `/cortex/ui`. Publish its compiled assets — no npm build in the app:
+A prebuilt dashboard (prompts, agents, run playground, tools, tool description overrides, MCP server instruction overrides) mounts at `/cortex/ui`. Publish its compiled assets — no npm build in the app:
 
 ```bash
 php artisan vendor:publish --tag="cortex-assets"          # re-run with --force after package updates
@@ -91,6 +92,8 @@ Cortex::tools()->register('search', \App\Ai\Tools\SearchTool::class);
 
 To let a tool's description be overridden at runtime (versioned + published like prompts), extend `JayI\Cortex\Tools\Tool` or use the `JayI\Cortex\Tools\Concerns\HasVersionedDescription` trait. Manage overrides from the dashboard or `/cortex/tools/{tool}/description` endpoints.
 
+MCP server *instructions* work the same way. Cortex's own server is always registered as `cortex`; register app servers under `cortex.mcp.servers` config (string keys name them; unkeyed entries derive the name from `#[Name]` or the class basename) or at runtime with `Cortex::servers()->register('support', \App\Mcp\SupportServer::class)`. For published overrides to be served to MCP clients, the server must extend `JayI\Cortex\Mcp\Server` or use the `JayI\Cortex\Mcp\Concerns\HasVersionedInstructions` trait.
+
 ### 5. Manage prompts and agents via the API (or MCP tools)
 
 - `POST /cortex/prompts` `{name, slug, content, publish?}` — creates version 1, published by default.
@@ -101,10 +104,12 @@ To let a tool's description be overridden at runtime (versioned + published like
 - `GET /cortex/providers` — providers with models and default model. Curate via `cortex.providers` config (authoritative when non-empty); otherwise every text-capable laravel/ai provider is offered.
 - `GET /cortex/tools` — registered tools with JSON schemas.
 - `GET|DELETE /cortex/tools/{tool}/description`, `GET|POST .../description/versions`, `POST .../versions/{version}/publish` — versioned tool description overrides.
+- `GET /cortex/servers` — registered MCP servers with their effective instructions.
+- `GET|DELETE /cortex/servers/{server}/instructions`, `GET|POST .../instructions/versions`, `POST .../versions/{version}/publish` — versioned server instruction overrides (rollback = publish an older version).
 
-The MCP server (`JayI\Cortex\Mcp\CortexServer`) exposes the prompt, agent, and tool-list operations as 16 MCP tools; the provider and tool-description endpoints are HTTP-only.
+The MCP server (`JayI\Cortex\Mcp\CortexServer`) exposes the prompt, agent, tool-list, and server-instruction operations as 22 MCP tools; the provider and tool-description endpoints are HTTP-only.
 
-Published prompt content and description overrides are cached (`cortex.cache` config: Redis preferred with stale-while-revalidate, other stores cache until publish invalidates; disable with `'cache' => ['enabled' => false]`).
+Published prompt content, description overrides, and server instruction overrides are cached (`cortex.cache` config: Redis preferred with stale-while-revalidate, other stores cache until publish invalidates; disable with `'cache' => ['enabled' => false]`).
 
 For custom frontends, `@jayi/cortex-sdk` (npm) is a typed openapi-fetch client: `createCortexClient({ baseUrl, accessToken? })` — `baseUrl` is the origin only; spec paths include the `/cortex` prefix.
 
@@ -148,7 +153,7 @@ Read before executing:
 ## Anti-patterns
 
 - do not document package internals here; keep the skill focused on adoption in Laravel apps
-- do not edit prompt version content — versions are immutable; create a new version and publish it (tool description override versions work the same way)
+- do not edit prompt version content — versions are immutable; create a new version and publish it (tool description and server instruction override versions work the same way)
 - do not enable the MCP web transport or expose the routes or dashboard without auth middleware
 - do not rebuild dashboard assets in the consuming app — publish the compiled bundle with `--tag="cortex-assets"`
 - do not attach tool class names to agents — attach the registered tool *names* from the registry

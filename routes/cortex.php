@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use JayI\Cortex\Http\Controllers\AgentController;
 use JayI\Cortex\Http\Controllers\AgentRunController;
+use JayI\Cortex\Http\Controllers\McpInstructionController;
+use JayI\Cortex\Http\Controllers\McpServerController;
 use JayI\Cortex\Http\Controllers\PromptController;
 use JayI\Cortex\Http\Controllers\PromptVersionController;
 use JayI\Cortex\Http\Controllers\ProviderController;
@@ -49,4 +51,13 @@ Route::prefix($prefix)->middleware($middleware)->name('cortex.')->group(function
     Route::post('tools/{tool}/description/versions', [ToolDescriptionController::class, 'store'])->name('tools.description.versions.store');
     Route::post('tools/{tool}/description/versions/{version}/publish', [ToolDescriptionController::class, 'publish'])
         ->whereNumber('version')->name('tools.description.versions.publish');
+
+    Route::get('servers', [McpServerController::class, 'index'])->name('servers.index');
+
+    Route::get('servers/{server}/instructions', [McpInstructionController::class, 'show'])->name('servers.instructions.show');
+    Route::delete('servers/{server}/instructions', [McpInstructionController::class, 'destroy'])->name('servers.instructions.destroy');
+    Route::get('servers/{server}/instructions/versions', [McpInstructionController::class, 'versions'])->name('servers.instructions.versions.index');
+    Route::post('servers/{server}/instructions/versions', [McpInstructionController::class, 'store'])->name('servers.instructions.versions.store');
+    Route::post('servers/{server}/instructions/versions/{version}/publish', [McpInstructionController::class, 'publish'])
+        ->whereNumber('version')->name('servers.instructions.versions.publish');
 });

@@ -8,6 +8,8 @@ import AgentForm from './views/agents/AgentForm.vue';
 import RunAgent from './views/RunAgent.vue';
 import ToolsIndex from './views/ToolsIndex.vue';
 import ToolDescription from './views/ToolDescription.vue';
+import ServersIndex from './views/ServersIndex.vue';
+import ServerInstructions from './views/ServerInstructions.vue';
 
 export default createRouter({
     history: createWebHistory(config.basePath),
@@ -23,6 +25,8 @@ export default createRouter({
         { path: '/run', name: 'run', component: RunAgent },
         { path: '/tools', name: 'tools.index', component: ToolsIndex },
         { path: '/tools/:tool/description', name: 'tools.description', component: ToolDescription, props: true },
+        { path: '/servers', name: 'servers.index', component: ServersIndex },
+        { path: '/servers/:server/instructions', name: 'servers.instructions', component: ServerInstructions, props: true },
         { path: '/:pathMatch(.*)*', redirect: '/prompts' },
     ],
 });

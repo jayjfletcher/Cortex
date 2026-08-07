@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JayI\Cortex;
 
+use JayI\Cortex\Mcp\McpServerRegistry;
 use JayI\Cortex\Models\Agent;
 use JayI\Cortex\Runtime\AgentFactory;
 use JayI\Cortex\Runtime\DbAgent;
@@ -14,12 +15,18 @@ class Cortex
 {
     public function __construct(
         private readonly ToolRegistry $tools,
+        private readonly McpServerRegistry $servers,
         private readonly AgentFactory $agents,
     ) {}
 
     public function tools(): ToolRegistry
     {
         return $this->tools;
+    }
+
+    public function servers(): McpServerRegistry
+    {
+        return $this->servers;
     }
 
     public function agent(string $slug): DbAgent

@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
+use JayI\Cortex\Actions\CreateMcpInstructionVersionAction;
 use JayI\Cortex\Actions\CreatePromptVersionAction;
 use JayI\Cortex\Actions\CreateToolDescriptionVersionAction;
+use JayI\Cortex\Actions\DeleteMcpInstructionAction;
 use JayI\Cortex\Actions\DeleteToolDescriptionAction;
+use JayI\Cortex\Actions\PublishMcpInstructionVersionAction;
 use JayI\Cortex\Actions\PublishPromptVersionAction;
 use JayI\Cortex\Actions\PublishToolDescriptionVersionAction;
+use JayI\Cortex\Mcp\McpInstructionOverrides;
 use JayI\Cortex\Models\Agent;
+use JayI\Cortex\Models\McpInstruction;
 use JayI\Cortex\Models\Prompt;
 use JayI\Cortex\Models\ToolDescription;
 use JayI\Cortex\Runtime\AgentFactory;
@@ -98,4 +103,40 @@ it('invalidates the override map when an override is deleted', function () {
 
     app()->forgetScopedInstances();
     expect((string) $registry->get('echo')->description())->toBe('Echoes back the given message.');
+});
+
+it('caches the mcp instruction override map until a version is published', function () {
+    app(CreateMcpInstructionVersionAction::class)->execute('cortex', ['content' => 'first', 'publish' => true]);
+
+    $freshInstructions = function (): ?string {
+        app()->forgetScopedInstances();
+
+        return app(McpInstructionOverrides::class)->for('cortex');
+    };
+
+    expect($freshInstructions())->toBe('first');
+
+    // Direct write bypassing the actions: cache keeps serving the old map.
+    $instruction = McpInstruction::query()->where('server', 'cortex')->firstOrFail();
+    $rogue = $instruction->versions()->create(['version' => 2, 'content' => 'rogue']);
+    $instruction->published_version_id = $rogue->getKey();
+    $instruction->save();
+
+    expect($freshInstructions())->toBe('first');
+
+    app(PublishMcpInstructionVersionAction::class)->execute($instruction->fresh(), 2);
+
+    expect($freshInstructions())->toBe('rogue');
+});
+
+it('invalidates the mcp instruction map when an override is deleted', function () {
+    app(CreateMcpInstructionVersionAction::class)->execute('cortex', ['content' => 'override', 'publish' => true]);
+
+    app()->forgetScopedInstances();
+    expect(app(McpInstructionOverrides::class)->for('cortex'))->toBe('override');
+
+    app(DeleteMcpInstructionAction::class)->execute(McpInstruction::query()->where('server', 'cortex')->firstOrFail());
+
+    app()->forgetScopedInstances();
+    expect(app(McpInstructionOverrides::class)->for('cortex'))->toBeNull();
 });

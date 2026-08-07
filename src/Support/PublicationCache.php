@@ -76,6 +76,11 @@ final class PublicationCache
         return 'cortex.published.tool-descriptions';
     }
 
+    public function mcpInstructionsKey(): string
+    {
+        return 'cortex.published.mcp-instructions';
+    }
+
     public function promptKey(string $promptId): string
     {
         return 'cortex.published.prompt.'.$promptId;
