@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('content');
             $table->timestamps();
 
-            $table->unique(['mcp_instruction_id', 'version']);
+            $table->unique(['mcp_instruction_id', 'version'], 'cortex_mcp_instruction_versions_instruction_version_unique');
         });
     }
 

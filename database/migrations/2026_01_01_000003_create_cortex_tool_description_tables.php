@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('content');
             $table->timestamps();
 
-            $table->unique(['tool_description_id', 'version']);
+            $table->unique(['tool_description_id', 'version'], 'cortex_tool_description_versions_description_version_unique');
         });
     }
 
