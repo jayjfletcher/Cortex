@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Cache\RedisStore;
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Support\Facades\Cache;
 use JayI\Cortex\Actions\CreateMcpInstructionVersionAction;
 use JayI\Cortex\Actions\CreatePromptVersionAction;
 use JayI\Cortex\Actions\CreateToolDescriptionVersionAction;
@@ -16,6 +19,7 @@ use JayI\Cortex\Models\McpInstruction;
 use JayI\Cortex\Models\Prompt;
 use JayI\Cortex\Models\ToolDescription;
 use JayI\Cortex\Runtime\AgentFactory;
+use JayI\Cortex\Support\PublicationCache;
 use JayI\Cortex\Tests\Fixtures\EchoTool;
 use JayI\Cortex\Tools\ToolRegistry;
 
@@ -127,6 +131,41 @@ it('caches the mcp instruction override map until a version is published', funct
     app(PublishMcpInstructionVersionAction::class)->execute($instruction->fresh(), 2);
 
     expect($freshInstructions())->toBe('rogue');
+});
+
+it('shares a redis hash tag between each cache key and its flexible created twin', function () {
+    $cache = app(PublicationCache::class);
+
+    $keys = [
+        $cache->toolDescriptionsKey(),
+        $cache->mcpInstructionsKey(),
+        $cache->promptKey('7'),
+    ];
+
+    foreach ($keys as $key) {
+        // Redis cluster hashes only the first {...} segment of a key, so the
+        // key and its flexible() created twin must expose an identical tag.
+        preg_match('/\{[^}]+\}/', $key, $keyTag);
+        preg_match('/\{[^}]+\}/', 'illuminate:cache:flexible:created:'.$key, $twinTag);
+
+        expect($keyTag)->not->toBeEmpty()
+            ->and($twinTag[0])->toBe($keyTag[0]);
+    }
+});
+
+it('falls back to the callback when the cache backend fails', function () {
+    config()->set('cortex.cache.store', 'redis');
+
+    $store = Mockery::mock(RedisStore::class);
+    $repository = Mockery::mock(Repository::class);
+    $repository->shouldReceive('getStore')->andReturn($store);
+    $repository->shouldReceive('flexible')->andThrow(
+        new TypeError('array_map(): Argument #2 ($array) must be of type array, false given'),
+    );
+
+    Cache::shouldReceive('store')->with('redis')->andReturn($repository);
+
+    expect(app(PublicationCache::class)->remember('key', fn (): string => 'from-db'))->toBe('from-db');
 });
 
 it('invalidates the mcp instruction map when an override is deleted', function () {

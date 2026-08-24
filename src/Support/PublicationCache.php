@@ -41,18 +41,24 @@ final class PublicationCache
 
         $repository = $this->repository();
 
-        if ($repository->getStore() instanceof RedisStore) {
-            return $repository->flexible(
-                $key,
-                [
-                    (int) config('cortex.cache.fresh', 300),
-                    (int) config('cortex.cache.stale', 86400),
-                ],
-                $callback,
-            );
-        }
+        try {
+            if ($repository->getStore() instanceof RedisStore) {
+                return $repository->flexible(
+                    $key,
+                    [
+                        (int) config('cortex.cache.fresh', 300),
+                        (int) config('cortex.cache.stale', 86400),
+                    ],
+                    $callback,
+                );
+            }
 
-        return $repository->rememberForever($key, $callback);
+            return $repository->rememberForever($key, $callback);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $callback();
+        }
     }
 
     public function forget(string ...$keys): void
@@ -71,19 +77,26 @@ final class PublicationCache
         return (bool) config('cortex.cache.enabled', true);
     }
 
+    /**
+     * The `{cortex.published}` hash tag keeps each key and the
+     * `illuminate:cache:flexible:created:` twin that flexible() fetches
+     * alongside it in the same MGET on the same Redis cluster slot —
+     * without it, clustered Redis rejects the cross-slot MGET and
+     * phpredis returns false.
+     */
     public function toolDescriptionsKey(): string
     {
-        return 'cortex.published.tool-descriptions';
+        return '{cortex.published}.tool-descriptions';
     }
 
     public function mcpInstructionsKey(): string
     {
-        return 'cortex.published.mcp-instructions';
+        return '{cortex.published}.mcp-instructions';
     }
 
     public function promptKey(string $promptId): string
     {
-        return 'cortex.published.prompt.'.$promptId;
+        return '{cortex.published}.prompt.'.$promptId;
     }
 
     private function repository(): Repository
