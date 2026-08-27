@@ -19,7 +19,7 @@
     "require": {
         "php": "^8.4",
         "illuminate/support": "^13.15",
-        "laravel/ai": "^0.10",
+        "laravel/ai": "^0.11",
         "laravel/mcp": "^0.9"
     },
     "require-dev": {
