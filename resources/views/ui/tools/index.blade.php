@@ -9,7 +9,6 @@
                 <x-slot:head>
                     <x-atrium::table.row>
                         <x-atrium::table.cell heading>{{ __('cortex::cortex.name') }}</x-atrium::table.cell>
-                        <x-atrium::table.cell heading>{{ __('cortex::cortex.description') }}</x-atrium::table.cell>
                         <x-atrium::table.cell heading>{{ __('cortex::cortex.actions') }}</x-atrium::table.cell>
                     </x-atrium::table.row>
                 </x-slot:head>
@@ -17,7 +16,6 @@
                 @foreach ($tools as $tool)
                     <x-atrium::table.row>
                         <x-atrium::table.cell><code class="text-xs">{{ $tool['name'] }}</code></x-atrium::table.cell>
-                        <x-atrium::table.cell>{{ $tool['description'] }}</x-atrium::table.cell>
                         <x-atrium::table.cell>
                             <x-atrium::button size="sm" variant="outline"
                                               :href="route('atrium.cortex.tools.description', $tool['name'])">

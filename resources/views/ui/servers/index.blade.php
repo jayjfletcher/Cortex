@@ -9,7 +9,6 @@
                 <x-slot:head>
                     <x-atrium::table.row>
                         <x-atrium::table.cell heading>{{ __('cortex::cortex.name') }}</x-atrium::table.cell>
-                        <x-atrium::table.cell heading>{{ __('cortex::cortex.instructions') }}</x-atrium::table.cell>
                         <x-atrium::table.cell heading>{{ __('cortex::cortex.actions') }}</x-atrium::table.cell>
                     </x-atrium::table.row>
                 </x-slot:head>
@@ -17,7 +16,6 @@
                 @foreach ($servers as $server)
                     <x-atrium::table.row>
                         <x-atrium::table.cell><code class="text-xs">{{ $server['name'] }}</code></x-atrium::table.cell>
-                        <x-atrium::table.cell class="max-w-md truncate">{{ $server['instructions'] }}</x-atrium::table.cell>
                         <x-atrium::table.cell>
                             <x-atrium::button size="sm" variant="outline"
                                               :href="route('atrium.cortex.servers.instructions', $server['name'])">
