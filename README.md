@@ -36,10 +36,10 @@ Publish the config file to customize routes, the dashboard, MCP transports, and 
 php artisan vendor:publish --tag="cortex-config"
 ```
 
-To use the bundled dashboard, publish its compiled assets:
+The dashboard renders through Atrium, so publish its assets too:
 
 ```bash
-php artisan vendor:publish --tag="cortex-assets"
+php artisan vendor:publish --tag="atrium-assets"
 ```
 
 ## Configuration
@@ -51,19 +51,7 @@ return [
         'middleware' => ['api'],
     ],
     'ui' => [
-        'enabled' => true,
-        'path' => 'cortex/ui',
-        'middleware' => ['web'],
-        'auth' => [
-            'mode' => 'session', // 'session' | 'token' | 'oauth' | 'custom'
-            'token_resolver' => null,
-            'oauth' => [
-                'client_id' => null,
-                'authorize_url' => '/oauth/authorize',
-                'token_url' => '/oauth/token',
-                'scopes' => [],
-            ],
-        ],
+        'enabled' => true, // register Cortex with the Atrium dashboard
     ],
     'mcp' => [
         'web' => ['enabled' => false, 'route' => 'mcp/cortex', 'middleware' => []],
@@ -90,104 +78,26 @@ return [
 
 ## Dashboard
 
-Cortex ships a prebuilt dashboard (no npm build required in your app) covering prompts and versions, agents, a run playground, the tool registry, a versioned editor for tool description overrides, and the MCP server registry with a versioned editor for server instruction overrides. Publish the assets and visit `/cortex/ui`:
-
-```bash
-php artisan vendor:publish --tag="cortex-assets"
-```
-
-Configure it via the `ui` block: `enabled` toggles the route, `path` moves it, and `middleware` gates it. Re-publish assets after package updates:
-
-```bash
-php artisan vendor:publish --tag="cortex-assets" --force
-```
-
-Or automate that in `composer.json`:
-
-```json
-"post-update-cmd": [
-    "@php artisan vendor:publish --tag=cortex-assets --force --ansi"
-]
-```
-
-### Dashboard Authentication
-
-The dashboard calls the Cortex API from the browser, so it must authenticate the same way the rest of your app does. Four modes, selected via `ui.auth.mode`:
-
-**Session mode** (default, `'auth' => ['mode' => 'session']`) — the dashboard sends same-origin cookies plus the CSRF token (`X-XSRF-TOKEN`). Pair it with session middleware on both the dashboard and the API:
+Cortex renders its dashboard through [Atrium](https://github.com/jayi/atrium), which it requires. Install Atrium's gate and Cortex appears in the sidebar automatically:
 
 ```php
-'routes' => ['prefix' => 'cortex', 'middleware' => ['web', 'auth']],
-'ui' => ['middleware' => ['web', 'auth'], /* ... */],
+use Illuminate\Support\Facades\Gate;
+
+Gate::define('viewAtrium', fn ($user) => $user->is_admin);
 ```
 
-Putting `web` on the API routes enables CSRF verification and session auth for browser calls. If external non-browser consumers also use the API, prefer token mode with `auth:sanctum` instead.
+The dashboard covers prompts and their versions, agents, a run playground, the tool registry with a versioned description editor, and the MCP server registry with a versioned instructions editor.
 
-**Token mode** (`'auth' => ['mode' => 'token']`) — the dashboard sends `Authorization: Bearer <token>`, where the token comes from a resolver you register. Works with Sanctum tokens, JWTs, or OAuth access tokens:
+Atrium owns the path, the middleware and the authorization gate, so there is nothing to configure here beyond the single switch:
 
 ```php
-'routes' => ['prefix' => 'cortex', 'middleware' => ['api', 'auth:sanctum']],
-'ui' => [
-    'middleware' => ['web', 'auth'],
-    'auth' => [
-        'mode' => 'token',
-        'token_resolver' => \App\Cortex\DashboardTokenResolver::class,
-    ],
-],
+// config/cortex.php
+'ui' => ['enabled' => true],
 ```
 
-```php
-use Illuminate\Http\Request;
-use JayI\Cortex\Contracts\UiTokenResolver;
+Setting it to `false` removes Cortex from the dashboard and leaves the JSON API serving.
 
-class DashboardTokenResolver implements UiTokenResolver
-{
-    public function resolve(Request $request): ?string
-    {
-        return $request->user()?->createToken('cortex-dashboard')->plainTextToken;
-    }
-}
-```
-
-The token is resolved once per page load. For expiring tokens, define `window.CortexToken` as an async function before the dashboard script loads — the client will call it for every request and retry once on a 401:
-
-```html
-<script>
-    window.CortexToken = async (refresh) => await myTokenStore.get({ refresh });
-</script>
-```
-
-**OAuth mode** (`'auth' => ['mode' => 'oauth']`) — the dashboard runs an authorization-code + PKCE flow in the browser as a public client (no client secret). Configure the endpoints under `ui.auth.oauth` (works with Passport or any OAuth 2.0 server that supports PKCE):
-
-```php
-'routes' => ['prefix' => 'cortex', 'middleware' => ['api', 'auth:api']],
-'ui' => [
-    'middleware' => ['web', 'auth'],
-    'auth' => [
-        'mode' => 'oauth',
-        'oauth' => [
-            'client_id' => env('CORTEX_OAUTH_CLIENT_ID'),
-            'authorize_url' => '/oauth/authorize',
-            'token_url' => '/oauth/token',
-            'scopes' => [],
-        ],
-    ],
-],
-```
-
-The dashboard redirects to the authorize URL on first load, exchanges the code on return, keeps tokens in `sessionStorage`, refreshes via `refresh_token` when expiring, and falls back to a fresh authorize redirect if the refresh fails.
-
-**Custom mode** (`'auth' => ['mode' => 'custom']`) — the host page supplies its own auth driver by defining `window.CortexAuth` before the dashboard script loads (publish the views via `cortex-views` to control the shell):
-
-```html
-<script>
-    window.CortexAuth = {
-        async headers(refresh) { return { Authorization: `Bearer ${await getToken(refresh)}` }; },
-        async boot() { /* optional: run before the app mounts */ },
-        retriesOn401() { return true; }, // optional
-    };
-</script>
-```
+> **Authentication.** The pages are server-rendered behind Atrium's gate, so they authenticate the way the rest of your application does. The separate token and OAuth modes the old browser dashboard needed are gone.
 
 ## Registering Tools
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace JayI\Cortex;
 
-use Illuminate\Support\Facades\Route;
+use Atrium\Atrium\Facades\Atrium;
 use Illuminate\Support\ServiceProvider;
+use JayI\Cortex\Atrium\CortexPlugin;
 use JayI\Cortex\Console\Commands\CortexCommand;
-use JayI\Cortex\Http\Controllers\UiController;
 use JayI\Cortex\Mcp\CortexServer;
 use JayI\Cortex\Mcp\McpInstructionOverrides;
 use JayI\Cortex\Mcp\McpServerRegistry;
@@ -40,7 +40,7 @@ class CortexServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/cortex.php');
 
-        $this->registerUiRoutes();
+        $this->registerAtriumPlugin();
 
         $this->registerMcpServers();
 
@@ -78,25 +78,18 @@ class CortexServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the dashboard UI route when enabled in the config.
+     * Register Cortex with the Atrium dashboard.
+     *
+     * Atrium discovers the plugin from composer.json, so this only needs to
+     * honour the config switch that turns the dashboard surface off.
      */
-    private function registerUiRoutes(): void
+    private function registerAtriumPlugin(): void
     {
-        $config = $this->app->make('config');
-
-        if ($config->get('cortex.ui.enabled') !== true) {
+        if ($this->app->make('config')->get('cortex.ui.enabled') !== true) {
             return;
         }
 
-        /** @var array<int, string> $middleware */
-        $middleware = $config->get('cortex.ui.middleware', []);
-
-        $path = trim((string) $config->get('cortex.ui.path', 'cortex/ui'), '/');
-
-        Route::middleware($middleware)
-            ->get($path.'/{view?}', UiController::class)
-            ->where('view', '.*')
-            ->name('cortex.ui');
+        Atrium::plugin(CortexPlugin::class);
     }
 
     /**

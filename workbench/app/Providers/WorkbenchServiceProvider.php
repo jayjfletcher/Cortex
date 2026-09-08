@@ -4,6 +4,7 @@ namespace Workbench\App\Providers;
 
 use Dedoc\Scramble\Scramble;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -23,11 +24,14 @@ class WorkbenchServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Document the management API only — the dashboard shell route also
-        // lives under the cortex prefix but is not part of the API.
+        // Document the management API only. The dashboard pages live under
+        // Atrium's own prefix and are not part of the API.
         Scramble::routes(function (Route $route): bool {
-            return Str::startsWith($route->uri(), 'cortex/')
-                && ! Str::startsWith($route->uri(), 'cortex/ui');
+            return Str::startsWith($route->uri(), 'cortex/');
         });
+
+        // The workbench dashboard is open so `composer serve` is usable
+        // without logging in. A real application defines a real gate.
+        Gate::define('viewAtrium', fn ($user = null): bool => true);
     }
 }

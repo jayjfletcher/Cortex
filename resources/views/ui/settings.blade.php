@@ -1,0 +1,13 @@
+<div class="flex flex-col gap-4">
+    <div class="grid gap-4 sm:grid-cols-3">
+        <x-atrium::stat :label="__('cortex::cortex.providers')" :value="count($providers)" />
+        <x-atrium::stat :label="__('cortex::cortex.registered_tools')" :value="$toolCount" />
+        <x-atrium::stat :label="__('cortex::cortex.mcp_servers')" :value="$serverCount" />
+    </div>
+
+    <x-atrium::card :title="__('cortex::cortex.cache')">
+        <x-atrium::badge :variant="$cacheEnabled ? 'success' : 'neutral'">
+            {{ $cacheEnabled ? __('cortex::cortex.enabled') : __('cortex::cortex.disabled') }}
+        </x-atrium::badge>
+    </x-atrium::card>
+</div>

@@ -1,6 +1,7 @@
 laravel: '@testbench'
 
 providers:
+  - Atrium\Atrium\AtriumServiceProvider
   - JayI\Cortex\CortexServiceProvider
   - Dedoc\Scramble\ScrambleServiceProvider
   - Workbench\App\Providers\WorkbenchServiceProvider
@@ -30,6 +31,7 @@ workbench:
     - migrate-fresh
   assets:
     - laravel-assets
+    - atrium-assets
     - cortex-assets
   sync:
     - from: storage

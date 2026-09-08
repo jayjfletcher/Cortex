@@ -25,34 +25,20 @@ return [
     | Dashboard UI
     |--------------------------------------------------------------------------
     |
-    | Cortex ships a prebuilt dashboard mounted at the configured path. Add
-    | authentication middleware (e.g. ['web', 'auth']) before exposing it
-    | in production. The auth mode controls how the dashboard talks to
-    | the API: 'session' sends same-origin cookies plus the CSRF
-    | token, 'token' sends a bearer token returned by the
-    | configured resolver (a class implementing
-    | JayI\Cortex\Contracts\UiTokenResolver),
-    | 'oauth' runs an authorization-code + PKCE flow in the browser
-    | against the endpoints configured below (a public client), and
-    | 'custom' bridges to a window.CortexAuth driver the host page
-    | defines before the dashboard script loads.
+    | Cortex renders its dashboard through Atrium, which owns the path,
+    | middleware and authorization gate. Set this to false to keep the JSON
+    | API without adding Cortex to the dashboard.
     |
     */
 
     'ui' => [
+
+        /*
+        | Whether Cortex registers itself with the Atrium dashboard. The JSON
+        | API is unaffected by this switch.
+        */
+
         'enabled' => true,
-        'path' => 'cortex/ui',
-        'middleware' => ['web'],
-        'auth' => [
-            'mode' => 'session',
-            'token_resolver' => null,
-            'oauth' => [
-                'client_id' => null,
-                'authorize_url' => '/oauth/authorize',
-                'token_url' => '/oauth/token',
-                'scopes' => [],
-            ],
-        ],
     ],
 
     /*
