@@ -19,13 +19,13 @@
     "require": {
         "php": "^8.4",
         "illuminate/support": "^13.15",
-        "laravel/ai": "^0.10",
-        "laravel/mcp": "^0.9",
+        "laravel/ai": "^0.11",
+        "laravel/mcp": "^1.0",
         "jayi/atrium": "dev-main"
     },
     "require-dev": {
-        "dedoc/scramble": "^0.13.16",
-        "larastan/larastan": "^3.9",
+        "dedoc/scramble": "^0.13.45",
+        "larastan/larastan": "^3.12",
         "laravel/pao": "^1.0",
         "laravel/pint": "^1.29",
         "orchestra/testbench": "^11.0",
