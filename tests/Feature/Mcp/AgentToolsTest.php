@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Testing\Fluent\AssertableJson;
-use JayI\Cortex\Mcp\CortexServer;
 use JayI\Cortex\Mcp\Tools\CreateAgentTool;
 use JayI\Cortex\Mcp\Tools\DeleteAgentTool;
 use JayI\Cortex\Mcp\Tools\ListAgentsTool;
@@ -22,7 +21,7 @@ it('creates an agent with parity to the http payload', function () {
     PromptVersion::factory()->for($prompt, 'prompt')->create(['version' => 1]);
     Agent::factory()->create(['slug' => 'researcher']);
 
-    $mcp = CortexServer::tool(CreateAgentTool::class, [
+    $mcp = mcpTool(CreateAgentTool::class, [
         'name' => 'Coordinator',
         'slug' => 'coordinator',
         'settings' => ['temperature' => 0.3],
@@ -43,7 +42,7 @@ it('creates an agent with parity to the http payload', function () {
 });
 
 it('validates create agent input against the registry', function () {
-    CortexServer::tool(CreateAgentTool::class, [
+    mcpTool(CreateAgentTool::class, [
         'name' => 'Broken',
         'slug' => 'broken',
         'tools' => ['missing'],
@@ -53,7 +52,7 @@ it('validates create agent input against the registry', function () {
 it('lists agents in a data envelope', function () {
     Agent::factory()->create(['slug' => 'helper']);
 
-    CortexServer::tool(ListAgentsTool::class)
+    mcpTool(ListAgentsTool::class)
         ->assertOk()
         ->assertStructuredContent(
             fn (AssertableJson $json) => $json
@@ -66,13 +65,13 @@ it('lists agents in a data envelope', function () {
 it('shows an agent by slug', function () {
     Agent::factory()->create(['slug' => 'helper']);
 
-    CortexServer::tool(ShowAgentTool::class, ['slug' => 'helper'])
+    mcpTool(ShowAgentTool::class, ['slug' => 'helper'])
         ->assertOk()
         ->assertSee('helper');
 });
 
 it('errors not found for unknown agent slugs', function () {
-    CortexServer::tool(ShowAgentTool::class, ['slug' => 'missing'])
+    mcpTool(ShowAgentTool::class, ['slug' => 'missing'])
         ->assertHasErrors(['Not found.']);
 });
 
@@ -81,7 +80,7 @@ it('updates an agent with sync semantics', function () {
     $agent = Agent::factory()->create(['slug' => 'helper', 'tools' => ['old']]);
     $agent->subAgents()->attach(Agent::factory()->create());
 
-    CortexServer::tool(UpdateAgentTool::class, [
+    mcpTool(UpdateAgentTool::class, [
         'slug' => 'helper',
         'tools' => ['echo'],
         'sub_agents' => [],
@@ -96,7 +95,7 @@ it('rejects circular sub-agent updates', function () {
     $b = Agent::factory()->create(['slug' => 'agent-b']);
     $a->subAgents()->attach($b);
 
-    CortexServer::tool(UpdateAgentTool::class, [
+    mcpTool(UpdateAgentTool::class, [
         'slug' => 'agent-b',
         'sub_agents' => ['agent-a'],
     ])->assertHasErrors();
@@ -105,7 +104,7 @@ it('rejects circular sub-agent updates', function () {
 it('deletes an agent', function () {
     Agent::factory()->create(['slug' => 'helper']);
 
-    CortexServer::tool(DeleteAgentTool::class, ['slug' => 'helper'])
+    mcpTool(DeleteAgentTool::class, ['slug' => 'helper'])
         ->assertOk()
         ->assertSee('Agent deleted.');
 
@@ -117,7 +116,7 @@ it('lists registered tools with parity to the http payload', function () {
 
     $http = $this->getJson(route('cortex.tools.index'))->json('data');
 
-    CortexServer::tool(ListToolsTool::class)
+    mcpTool(ListToolsTool::class)
         ->assertOk()
         ->assertStructuredContent(['data' => $http]);
 });

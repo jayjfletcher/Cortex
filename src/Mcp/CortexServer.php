@@ -30,6 +30,7 @@ use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 use Laravel\Mcp\Server\Tool;
+use Laravel\Mcp\Server\Tools\ToolSearch;
 
 #[Name('Cortex')]
 #[Version('1.0.0')]
@@ -37,39 +38,41 @@ use Laravel\Mcp\Server\Tool;
 final class CortexServer extends Server
 {
     /**
-     * @var array<int, class-string<Tool>|Tool>
+     * @var array<class-string<ToolSearch>, array<int, class-string<Tool>|Tool>>
      */
     protected array $tools = [
-        // Prompts
-        ListPromptsTool::class,
-        CreatePromptTool::class,
-        ShowPromptTool::class,
-        UpdatePromptTool::class,
-        DeletePromptTool::class,
+        ToolSearch::class => [
+            // Prompts
+            ListPromptsTool::class,
+            CreatePromptTool::class,
+            ShowPromptTool::class,
+            UpdatePromptTool::class,
+            DeletePromptTool::class,
 
-        // Prompt versions
-        ListPromptVersionsTool::class,
-        CreatePromptVersionTool::class,
-        ShowPromptVersionTool::class,
-        PublishPromptVersionTool::class,
+            // Prompt versions
+            ListPromptVersionsTool::class,
+            CreatePromptVersionTool::class,
+            ShowPromptVersionTool::class,
+            PublishPromptVersionTool::class,
 
-        // Agents
-        ListAgentsTool::class,
-        CreateAgentTool::class,
-        ShowAgentTool::class,
-        UpdateAgentTool::class,
-        DeleteAgentTool::class,
+            // Agents
+            ListAgentsTool::class,
+            CreateAgentTool::class,
+            ShowAgentTool::class,
+            UpdateAgentTool::class,
+            DeleteAgentTool::class,
 
-        // Tools + execution
-        ListToolsTool::class,
-        RunAgentTool::class,
+            // Tools + execution
+            ListToolsTool::class,
+            RunAgentTool::class,
 
-        // MCP servers
-        ListServersTool::class,
-        ShowServerInstructionsTool::class,
-        ListServerInstructionVersionsTool::class,
-        CreateServerInstructionVersionTool::class,
-        PublishServerInstructionVersionTool::class,
-        DeleteServerInstructionsTool::class,
+            // MCP servers
+            ListServersTool::class,
+            ShowServerInstructionsTool::class,
+            ListServerInstructionVersionsTool::class,
+            CreateServerInstructionVersionTool::class,
+            PublishServerInstructionVersionTool::class,
+            DeleteServerInstructionsTool::class,
+        ],
     ];
 }

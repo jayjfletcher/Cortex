@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Testing\Fluent\AssertableJson;
-use JayI\Cortex\Mcp\CortexServer;
 use JayI\Cortex\Mcp\McpServerRegistry;
 use JayI\Cortex\Mcp\Tools\CreateServerInstructionVersionTool;
 use JayI\Cortex\Mcp\Tools\DeleteServerInstructionsTool;
@@ -21,13 +20,13 @@ beforeEach(function () {
 it('lists servers in a data envelope with parity to the http payload', function () {
     $http = $this->getJson(route('cortex.servers.index'))->json('data');
 
-    CortexServer::tool(ListServersTool::class)
+    mcpTool(ListServersTool::class)
         ->assertOk()
         ->assertStructuredContent(['data' => $http]);
 });
 
 it('creates an instruction version with parity to the http payload', function () {
-    CortexServer::tool(CreateServerInstructionVersionTool::class, [
+    mcpTool(CreateServerInstructionVersionTool::class, [
         'server' => 'echo',
         'content' => 'v1 instructions',
         'publish' => true,
@@ -35,7 +34,7 @@ it('creates an instruction version with parity to the http payload', function ()
 
     $http = $this->getJson(route('cortex.servers.instructions.versions.index', ['server' => 'echo']))->json('data.0');
 
-    CortexServer::tool(ShowServerInstructionsTool::class, ['server' => 'echo'])
+    mcpTool(ShowServerInstructionsTool::class, ['server' => 'echo'])
         ->assertOk()
         ->assertStructuredContent(
             fn (AssertableJson $json) => $json
@@ -47,7 +46,7 @@ it('creates an instruction version with parity to the http payload', function ()
 });
 
 it('shows instructions with parity to the http payload', function () {
-    CortexServer::tool(CreateServerInstructionVersionTool::class, [
+    mcpTool(CreateServerInstructionVersionTool::class, [
         'server' => 'echo',
         'content' => 'published',
         'publish' => true,
@@ -55,18 +54,18 @@ it('shows instructions with parity to the http payload', function () {
 
     $http = $this->getJson(route('cortex.servers.instructions.show', ['server' => 'echo']))->json('data');
 
-    CortexServer::tool(ShowServerInstructionsTool::class, ['server' => 'echo'])
+    mcpTool(ShowServerInstructionsTool::class, ['server' => 'echo'])
         ->assertOk()
         ->assertStructuredContent($http);
 });
 
 it('lists instruction versions newest first with parity to the http payload', function () {
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v1'])->assertOk();
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v2'])->assertOk();
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v1'])->assertOk();
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v2'])->assertOk();
 
     $http = $this->getJson(route('cortex.servers.instructions.versions.index', ['server' => 'echo']))->json('data');
 
-    CortexServer::tool(ListServerInstructionVersionsTool::class, ['server' => 'echo'])
+    mcpTool(ListServerInstructionVersionsTool::class, ['server' => 'echo'])
         ->assertOk()
         ->assertStructuredContent(['data' => $http]);
 });
@@ -74,16 +73,16 @@ it('lists instruction versions newest first with parity to the http payload', fu
 it('lists zero instruction versions without erroring', function () {
     McpInstruction::query()->create(['server' => 'echo']);
 
-    CortexServer::tool(ListServerInstructionVersionsTool::class, ['server' => 'echo'])
+    mcpTool(ListServerInstructionVersionsTool::class, ['server' => 'echo'])
         ->assertOk()
         ->assertStructuredContent(['data' => []]);
 });
 
 it('publishes an instruction version with parity to the http payload', function () {
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v1'])->assertOk();
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v2'])->assertOk();
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v1'])->assertOk();
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v2'])->assertOk();
 
-    $mcp = CortexServer::tool(PublishServerInstructionVersionTool::class, ['server' => 'echo', 'version' => 1])
+    $mcp = mcpTool(PublishServerInstructionVersionTool::class, ['server' => 'echo', 'version' => 1])
         ->assertOk();
 
     $http = $this->getJson(route('cortex.servers.instructions.show', ['server' => 'echo']))->json('data');
@@ -94,10 +93,10 @@ it('publishes an instruction version with parity to the http payload', function 
 });
 
 it('deletes an instruction override', function () {
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v1', 'publish' => true])
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'echo', 'content' => 'v1', 'publish' => true])
         ->assertOk();
 
-    CortexServer::tool(DeleteServerInstructionsTool::class, ['server' => 'echo'])
+    mcpTool(DeleteServerInstructionsTool::class, ['server' => 'echo'])
         ->assertOk()
         ->assertSee('Server instructions override deleted.');
 
@@ -105,22 +104,22 @@ it('deletes an instruction override', function () {
 });
 
 it('errors not found for unregistered servers', function () {
-    CortexServer::tool(ShowServerInstructionsTool::class, ['server' => 'missing'])
+    mcpTool(ShowServerInstructionsTool::class, ['server' => 'missing'])
         ->assertHasErrors(['Not found.']);
 
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'missing', 'content' => 'x'])
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'missing', 'content' => 'x'])
         ->assertHasErrors(['Not found.']);
 });
 
 it('errors not found when no override exists yet', function () {
-    CortexServer::tool(ShowServerInstructionsTool::class, ['server' => 'echo'])
+    mcpTool(ShowServerInstructionsTool::class, ['server' => 'echo'])
         ->assertHasErrors(['Not found.']);
 
-    CortexServer::tool(DeleteServerInstructionsTool::class, ['server' => 'echo'])
+    mcpTool(DeleteServerInstructionsTool::class, ['server' => 'echo'])
         ->assertHasErrors(['Not found.']);
 });
 
 it('validates create instruction version input', function () {
-    CortexServer::tool(CreateServerInstructionVersionTool::class, ['server' => 'echo'])
+    mcpTool(CreateServerInstructionVersionTool::class, ['server' => 'echo'])
         ->assertHasErrors();
 });

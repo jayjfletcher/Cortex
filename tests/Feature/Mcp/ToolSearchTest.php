@@ -1,0 +1,86 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Collection;
+use JayI\Cortex\Mcp\CortexServer;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Content\Text;
+use Laravel\Mcp\Server\Tool;
+use Laravel\Mcp\Server\Transport\FakeTransporter;
+
+/**
+ * @return Collection<int, Tool>
+ */
+function cortexServerTools(): Collection
+{
+    return (new CortexServer(new FakeTransporter))->createContext()->tools();
+}
+
+function cortexServerTool(string $name): Tool
+{
+    return cortexServerTools()->firstOrFail(fn (Tool $tool): bool => $tool->name() === $name);
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function decodeToolSearchPayload(Response $response): array
+{
+    $content = $response->content();
+
+    expect($content)->toBeInstanceOf(Text::class);
+
+    /** @var array<string, mixed> $decoded */
+    $decoded = json_decode((string) $content, true, 512, JSON_THROW_ON_ERROR);
+
+    return $decoded;
+}
+
+it('exposes only the tool search entry points', function (): void {
+    expect(cortexServerTools()->map(fn (Tool $tool): string => $tool->name())->all())
+        ->toBe(['search_tools', 'execute_tools']);
+});
+
+it('finds catalog tools by search term', function (): void {
+    $payload = decodeToolSearchPayload(
+        cortexServerTool('search_tools')->handle(new Request(['query' => 'agents', 'limit' => 5])),
+    );
+
+    expect($payload['ok'])->toBeTrue()
+        ->and($payload['tools'])->not->toBeEmpty()
+        ->and(array_column($payload['tools'], 'name'))->toContain('list-agents-tool');
+});
+
+it('browses the catalog with an empty query', function (): void {
+    $payload = decodeToolSearchPayload(
+        cortexServerTool('search_tools')->handle(new Request(['query' => '', 'limit' => 50])),
+    );
+
+    expect($payload['ok'])->toBeTrue()
+        ->and($payload['tools'])->not->toBeEmpty();
+});
+
+it('executes a catalog tool through execute_tools', function (): void {
+    $responses = cortexServerTool('execute_tools')->handle(new Request([
+        'calls' => [['name' => 'list-agents-tool', 'arguments' => []]],
+    ]));
+
+    $payload = decodeToolSearchPayload(collect($responses)->firstOrFail());
+
+    expect($payload['ok'])->toBeTrue()
+        ->and($payload['results'][0]['name'])->toBe('list-agents-tool')
+        ->and($payload['results'][0]['isError'])->toBeFalse();
+});
+
+it('reports an error for a tool missing from the catalog', function (): void {
+    $responses = cortexServerTool('execute_tools')->handle(new Request([
+        'calls' => [['name' => 'no-such-tool', 'arguments' => []]],
+    ]));
+
+    $payload = decodeToolSearchPayload(collect($responses)->firstOrFail());
+
+    expect($payload['ok'])->toBeFalse()
+        ->and($payload['results'][0]['isError'])->toBeTrue();
+});
