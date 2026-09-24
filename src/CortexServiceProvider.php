@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JayI\Cortex;
 
 use Atrium\Atrium\Facades\Atrium;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use JayI\Cortex\Atrium\CortexPlugin;
 use JayI\Cortex\Console\Commands\CortexCommand;
@@ -12,6 +13,7 @@ use JayI\Cortex\Mcp\CortexServer;
 use JayI\Cortex\Mcp\McpInstructionOverrides;
 use JayI\Cortex\Mcp\McpServerRegistry;
 use Laravel\Mcp\Facades\Mcp;
+use Laravel\Mcp\Request as McpRequest;
 
 class CortexServiceProvider extends ServiceProvider
 {
@@ -31,11 +33,39 @@ class CortexServiceProvider extends ServiceProvider
         $this->app->scoped(McpInstructionOverrides::class);
 
         $this->app->singleton(Cortex::class);
+
+        $this->fillMcpRequestsForAgents();
     }
 
     /**
      * Bootstrap any application services.
      */
+    /**
+     * Give MCP tools their arguments when an agent calls them.
+     *
+     * An MCP server hands a tool call's arguments to the tool's request
+     * through the `mcp.request` binding, and laravel/mcp copies them into any
+     * request subclass the tool type-hints. laravel/ai's McpServerTool, which
+     * wraps every MCP tool an agent uses, binds them as the base
+     * Laravel\Mcp\Request instead — so a tool that type-hints its own
+     * request class would receive none. Copy them across in that case.
+     */
+    private function fillMcpRequestsForAgents(): void
+    {
+        $this->app->resolving(McpRequest::class, function (McpRequest $request, Application $app): void {
+            if ($app->bound('mcp.request') || ! $app->bound(McpRequest::class)) {
+                return;
+            }
+
+            $arguments = $app->make(McpRequest::class);
+
+            if ($arguments !== $request) {
+                $request->setArguments($arguments->all());
+                $request->setMeta($arguments->meta());
+            }
+        });
+    }
+
     public function boot(): void
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/cortex.php');

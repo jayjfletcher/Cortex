@@ -16,6 +16,10 @@
 - `JayI\Cortex\Mcp\Server` base class and `HasVersionedInstructions` trait so any Laravel MCP server can serve its published instruction override.
 - REST endpoints under `/cortex/servers` for listing servers and managing instruction overrides, six matching MCP tools on `CortexServer` (now 22 tools), and a Servers section in the dashboard with a versioned instructions editor.
 
+### Fixed
+
+- Agents calling an MCP tool whose `handle()` type-hints its own `Laravel\Mcp\Request` subclass now pass their arguments to it. Previously laravel/ai's `McpServerTool` bound the arguments only as the base request, so such tools, including Cortex's own MCP tools, received an empty request and failed validation.
+
 
 ## [v0.1.0](https://github.com/jayi/cortex/compare/...v0.1.0) - 202x-xx-xx
 
