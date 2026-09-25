@@ -22,16 +22,10 @@ it('merges the package config', function () {
 });
 
 it('loads the package translations', function () {
-    expect(trans('cortex::messages.placeholder'))->toBe('Cortex placeholder translation.');
+    expect(trans('cortex::cortex.prompts'))->toBe('Prompts');
 });
 
 it('loads the package views', function () {
     expect(view()->exists('cortex::ui.prompts.index'))->toBeTrue()
         ->and(view()->exists('cortex::ui.agents.form'))->toBeTrue();
-});
-
-it('registers the artisan command', function () {
-    $this->artisan('cortex:placeholder')
-        ->expectsOutputToContain('Cortex placeholder command executed.')
-        ->assertSuccessful();
 });

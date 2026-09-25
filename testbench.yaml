@@ -3,7 +3,6 @@ laravel: '@testbench'
 providers:
   - JayI\Atrium\AtriumServiceProvider
   - JayI\Cortex\CortexServiceProvider
-  - Dedoc\Scramble\ScrambleServiceProvider
   - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
@@ -14,7 +13,7 @@ seeders:
   - Workbench\Database\Seeders\DatabaseSeeder
 
 workbench:
-  start: '/'
+  start: '/atrium'
   install: true
   health: false
   discovers:
@@ -32,7 +31,6 @@ workbench:
   assets:
     - laravel-assets
     - atrium-assets
-    - cortex-assets
   sync:
     - from: storage
       to: workbench/storage

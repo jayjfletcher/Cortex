@@ -78,12 +78,10 @@ return [
     'select_agent' => 'Select an agent',
     'input' => 'Input',
     'run' => 'Run',
-    'running' => 'Running…',
     'response' => 'Response',
     'usage' => 'Usage',
 
     // Tools and servers
-    'schema' => 'Schema',
     'no_tools' => 'No tools are registered. Add them under the cortex.tools config key.',
     'no_servers' => 'No MCP servers are registered. Add them under the cortex.mcp.servers config key.',
     'instructions' => 'Instructions',

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use JayI\Atrium\Facades\Atrium;
 use JayI\Cortex\Atrium\CortexPlugin;
-use JayI\Cortex\Console\Commands\CortexCommand;
 use JayI\Cortex\Mcp\CortexServer;
 use JayI\Cortex\Mcp\McpInstructionOverrides;
 use JayI\Cortex\Mcp\McpServerRegistry;
@@ -39,9 +38,6 @@ class CortexServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap any application services.
-     */
-    /**
      * Give MCP tools their arguments when an agent calls them.
      *
      * An MCP server hands a tool call's arguments to the tool's request
@@ -67,6 +63,9 @@ class CortexServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
         $this->registerPolicies();
@@ -97,17 +96,9 @@ class CortexServiceProvider extends ServiceProvider
             __DIR__.'/../lang' => $this->app->langPath('vendor/cortex'),
         ], ['cortex', 'cortex-lang']);
 
-        $this->publishes([
-            __DIR__.'/../public' => public_path('vendor/cortex'),
-        ], ['cortex', 'cortex-assets']);
-
         $this->publishesMigrations([
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], ['cortex', 'cortex-migrations']);
-
-        $this->commands([
-            CortexCommand::class,
-        ]);
     }
 
     /**

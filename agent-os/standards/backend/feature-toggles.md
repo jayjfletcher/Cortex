@@ -11,6 +11,6 @@ if ($config->get('cortex.mcp.web.enabled') === true) { ... }
 ```
 
 - Compare against literal `true` — fail closed: `'1'`, `'yes'`, or typo'd config never accidentally exposes an endpoint
-- Path, route, handle, and middleware for each surface come from config — nothing hardcoded in the provider
+- Route, handle, and middleware for each surface come from config — nothing hardcoded in the provider (the dashboard's path, middleware and gate come from Atrium's config)
 - Registration lives in a private `register…()` method per surface, called from `boot()`
 - New optional surface = same shape: `cortex.<surface>.enabled` flag, strict check, config-driven wiring

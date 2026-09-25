@@ -11,6 +11,6 @@ if ($prompt->agents()->exists()) {
 ```
 
 - Key the message by the relevant input field (`prompt`, `sub_agents`, `prompt_version`)
-- Why: both surfaces render it for free — HTTP gets structured 422, MCP gets tool error — and the SPA slots field-keyed errors into existing form error display
+- Why: every surface renders it for free — HTTP gets structured 422, MCP gets tool error, and the Blade dashboard gets them back as ordinary validation errors
 - No custom domain exception classes; no abort()/HttpException in actions
 - Examples: delete-in-use, circular sub-agent refs, version pinned without prompt

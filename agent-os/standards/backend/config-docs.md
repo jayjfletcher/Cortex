@@ -18,6 +18,6 @@
 Banner must state:
 - What the section controls
 - Security implications — anything exposing routes names the auth middleware to add before production (mandatory)
-- Available modes/values and what each does (e.g. the four `ui.auth.mode` values)
+- Available modes/values and what each does (e.g. the `cache` store and fresh/stale windows)
 
 New config key without a documented section = incomplete change.

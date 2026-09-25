@@ -4,8 +4,8 @@ description: >
   Configure and apply the Cortex package in Laravel applications: versioned
   prompts, a tool registry with versioned description overrides, an MCP
   server registry with versioned instruction overrides, and DB-backed
-  AI agents exposed through a REST API, a prebuilt dashboard, an
-  MCP server, and a TypeScript SDK.
+  AI agents exposed through a REST API, a prebuilt dashboard, and an
+  MCP server.
 license: MIT
 metadata:
   author: Jay Fletcher
@@ -37,12 +37,11 @@ php artisan vendor:publish --tag="cortex-config"
 
 ### 2. Secure the surface before enabling it
 
-The API routes, dashboard, and MCP server manage **and execute** agents. MCP transports are disabled by default; the routes ship on `api` middleware only and the dashboard on `web` only. Always add auth middleware before production exposure:
+The API routes, dashboard, and MCP server manage **and execute** agents. MCP transports are disabled by default and the routes ship on `api` middleware only. Always add auth middleware to the routes and the MCP web transport before production exposure. The dashboard is guarded by Atrium's `viewAtrium` gate (see step 3):
 
 ```php
 // config/cortex.php
 'routes' => ['prefix' => 'cortex', 'middleware' => ['api', 'auth:sanctum']],
-'ui' => ['middleware' => ['web', 'auth'], /* ... */],
 'mcp' => [
     'web' => ['enabled' => true, 'route' => 'mcp/cortex', 'middleware' => ['auth:sanctum']],
     'local' => ['enabled' => true, 'handle' => 'cortex'],   // php artisan mcp:start cortex
@@ -53,28 +52,18 @@ Every API endpoint and MCP tool that touches a model is also checked through the
 
 ### 3. Enable the dashboard (optional)
 
-A prebuilt dashboard (prompts, agents, run playground, tools, tool description overrides, MCP server instruction overrides) mounts at `/cortex/ui`. Publish its compiled assets — no npm build in the app:
+Cortex renders a server-side Blade dashboard (prompts, agents, run playground, tools, tool description overrides, MCP server instruction overrides) through the `jayi/atrium` package, which it requires. The pages live under Atrium's path (`/atrium/cortex/...` by default) and use Atrium's middleware and gate, so they authenticate like the rest of the app. Publish Atrium's assets and define its gate:
 
 ```bash
-php artisan vendor:publish --tag="cortex-assets"          # re-run with --force after package updates
+php artisan vendor:publish --tag="atrium-assets"
 ```
-
-The dashboard authenticates its API calls via `ui.auth.mode`:
-
-- `session` (default): sends cookies + CSRF. Pair `'routes' => ['middleware' => ['web', 'auth']]` with `'ui' => ['middleware' => ['web', 'auth']]`.
-- `token`: sends `Authorization: Bearer` from a resolver implementing `JayI\Cortex\Contracts\UiTokenResolver` (works with Sanctum/JWT tokens):
 
 ```php
-'ui' => [
-    'middleware' => ['web', 'auth'],
-    'auth' => ['mode' => 'token', 'token_resolver' => \App\Cortex\DashboardTokenResolver::class],
-],
+// e.g. in AppServiceProvider::boot()
+Gate::define('viewAtrium', fn ($user) => $user->is_admin);
 ```
 
-- `oauth`: authorization-code + PKCE flow in the browser (public client, e.g. Passport). Configure `ui.auth.oauth` — `client_id`, `authorize_url`, `token_url`, `scopes`.
-- `custom`: host page defines a `window.CortexAuth` driver (`headers(refresh)`, optional `boot()` and `retriesOn401()`) before the dashboard script loads.
-
-Set `'ui' => ['enabled' => false]` to remove the dashboard route entirely.
+Without a `viewAtrium` gate Atrium allows the `local` environment only. Set `'ui' => ['enabled' => false]` to leave Cortex out of the dashboard; the JSON API keeps serving.
 
 ### 4. Register tools
 
@@ -113,8 +102,6 @@ The MCP server (`JayI\Cortex\Mcp\CortexServer`) exposes the prompt, agent, tool-
 
 Published prompt content, description overrides, and server instruction overrides are cached (`cortex.cache` config: Redis preferred with stale-while-revalidate, other stores cache until publish invalidates; disable with `'cache' => ['enabled' => false]`).
 
-For custom frontends, `@jayi/cortex-sdk` (npm) is a typed openapi-fetch client: `createCortexClient({ baseUrl, accessToken? })` — `baseUrl` is the origin only; spec paths include the `/cortex` prefix.
-
 ### 6. Run agents from code
 
 ```php
@@ -150,10 +137,10 @@ Always fake — unfaked runs require a configured AI provider.
 
 Read before executing:
 
-- `config/cortex.php` — routes, dashboard, MCP transports, cache, providers, tools, policies
+- `config/cortex.php` — routes, dashboard switch, MCP transports, cache, providers, tools, policies
 - `docs/policies.md` — which ability each endpoint and MCP tool checks
 - `docs/events.md` — every action with its start and finish events
-- `README.md` — full route table, auth modes, and payload examples
+- `README.md` — full route table and payload examples
 
 ## Examples
 
@@ -164,6 +151,5 @@ Read before executing:
 
 - do not document package internals here; keep the skill focused on adoption in Laravel apps
 - do not edit prompt version content — versions are immutable; create a new version and publish it (tool description and server instruction override versions work the same way)
-- do not enable the MCP web transport or expose the routes or dashboard without auth middleware
-- do not rebuild dashboard assets in the consuming app — publish the compiled bundle with `--tag="cortex-assets"`
+- do not enable the MCP web transport or expose the routes without auth middleware, or ship the dashboard without a `viewAtrium` gate
 - do not attach tool class names to agents — attach the registered tool *names* from the registry

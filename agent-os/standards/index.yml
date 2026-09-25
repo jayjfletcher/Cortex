@@ -50,16 +50,6 @@ database:
   publish-pointer:
     description: FK-free published_version_id pointer; integrity at publish + cache invalidation
 
-javascript:
-  api-modules:
-    description: Per-resource SDK wrappers with unwrap payload-or-throw; views never fetch directly
-  auth-drivers:
-    description: Pluggable auth driver contract with window.CortexAuth escape hatch
-  config-bootstrap:
-    description: Host config via window.CortexConfig merged over defaults in config.js
-  form-errors:
-    description: "Two error channels: 422 field errors vs banner; shared form components"
-
 testing:
   arch-tests:
     description: "Executable global constraints: strict types, banned functions, Pest presets"

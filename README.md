@@ -10,7 +10,7 @@
     <a href="https://packagist.org/packages/jayi/cortex"><img src="https://img.shields.io/packagist/dt/jayi/cortex.svg?style=flat-square" alt="Total Downloads"></a>
 </p>
 
-AI orchestration for Laravel. Cortex manages **prompts (with immutable versioning), tools, and agents/sub-agents** on top of the [Laravel AI SDK](https://laravel.com/docs/ai-sdk), exposed through a REST API, a prebuilt dashboard, an [MCP](https://laravel.com/docs/mcp) server mirroring the prompt/agent/tool operations, and a typed TypeScript SDK.
+AI orchestration for Laravel. Cortex manages **prompts (with immutable versioning), tools, and agents/sub-agents** on top of the [Laravel AI SDK](https://laravel.com/docs/ai-sdk), exposed through a REST API, a prebuilt dashboard, and an [MCP](https://laravel.com/docs/mcp) server mirroring the prompt/agent/tool operations.
 
 - **Prompts** are versioned: content is immutable per version, and a published pointer decides what agents use. Roll back by publishing an older version.
 - **Tools** are PHP classes implementing `Laravel\Ai\Contracts\Tool` or extending `Laravel\Mcp\Server\Tool` (wrapped automatically), registered by name in the Cortex tool registry. Their descriptions can be overridden at runtime with versioned, publishable content.
@@ -56,6 +56,9 @@ return [
     'mcp' => [
         'web' => ['enabled' => false, 'route' => 'mcp/cortex', 'middleware' => []],
         'local' => ['enabled' => false, 'handle' => 'cortex'],
+        'servers' => [
+            // 'support' => \App\Mcp\SupportServer::class,
+        ],
     ],
     'cache' => [
         'enabled' => true,
@@ -77,7 +80,7 @@ return [
 ```
 
 > [!WARNING]
-> The API routes, dashboard, and MCP server manage **and execute** agents. The MCP transports are disabled by default, the API carries only the `api` middleware group, and the dashboard carries only `web`. Before exposing any of them in production, add authentication — e.g. `'middleware' => ['api', 'auth:sanctum']` for the routes, `'middleware' => ['web', 'auth']` for the dashboard, and `'middleware' => ['auth:sanctum']` for the MCP web transport.
+> The API routes, dashboard, and MCP server manage **and execute** agents. The MCP transports are disabled by default and the API carries only the `api` middleware group. Before exposing them in production, add authentication — e.g. `'middleware' => ['api', 'auth:sanctum']` for the routes and `'middleware' => ['auth:sanctum']` for the MCP web transport. The dashboard is guarded by Atrium's `viewAtrium` gate; define it as shown under [Dashboard](#dashboard).
 
 ## Authorization
 
@@ -108,7 +111,7 @@ Atrium owns the path, the middleware and the authorization gate, so there is not
 
 Setting it to `false` removes Cortex from the dashboard and leaves the JSON API serving.
 
-> **Authentication.** The pages are server-rendered behind Atrium's gate, so they authenticate the way the rest of your application does. The separate token and OAuth modes the old browser dashboard needed are gone.
+> **Authentication.** The pages are server-rendered under Atrium's path (`/atrium/cortex/...` by default) behind its `web` middleware and `viewAtrium` gate, so they authenticate the way the rest of your application does. Without a `viewAtrium` gate, Atrium allows only the `local` environment.
 
 ## Registering Tools
 
@@ -180,7 +183,7 @@ Providers, models, and settings fall back to your app's `config/ai.php` defaults
 
 ## Providers
 
-The dashboard's agent form offers providers and models from `GET /cortex/providers`. By default every text-capable provider configured for laravel/ai is offered, along with the models it declares (default, smartest, cheapest). Set `cortex.providers` to curate the list — it becomes authoritative when non-empty, with the first model of each provider used as its default:
+The dashboard's agent form and `GET /cortex/providers` offer the same provider and model list. By default every text-capable provider configured for laravel/ai is offered, along with the models it declares (default, smartest, cheapest). Set `cortex.providers` to curate the list — it becomes authoritative when non-empty, with the first model of each provider used as its default:
 
 ```php
 'providers' => [
@@ -233,23 +236,6 @@ For the published override to actually be served to MCP clients, the server clas
 - **Listening to a whole family:** listen to `ModelLifecycleEvent`, `ActionStartingEvent` or `ActionFinishedEvent` (in `JayI\Cortex\Contracts`) to receive every event of that family.
 
 **Full guide:** [Events](docs/events.md). It lists every action with its two events and what they carry.
-
-## TypeScript SDK
-
-The dashboard consumes `@jayi/cortex-sdk` (in `sdk/`), a type-safe client generated from the package's OpenAPI spec with [openapi-fetch](https://openapi-ts.dev/openapi-fetch/). Use it in your own frontend:
-
-```ts
-import { createCortexClient } from '@jayi/cortex-sdk';
-
-const cortex = createCortexClient({
-    baseUrl: 'https://example.test', // origin only — spec paths include the /cortex prefix
-    accessToken: token,              // optional; or pass a custom fetch for dynamic auth
-});
-
-const { data, error } = await cortex.GET('/cortex/agents');
-```
-
-The spec bakes in the default `cortex` route prefix — regenerate it (`npm run sdk:generate` in the package repo) if you change `routes.prefix`.
 
 ## Testing Your Integration
 

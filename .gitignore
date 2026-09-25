@@ -1,6 +1,5 @@
 /vendor
 /build
-/node_modules
 /.phpunit.cache
 /.phpunit.result.cache
 /coverage
@@ -10,5 +9,3 @@ composer.lock
 .DS_Store
 .idea
 .vscode
-sdk/node_modules
-sdk/dist
