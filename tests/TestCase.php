@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Tests;
 
-use Atrium\Atrium\AtriumServiceProvider;
+use JayI\Atrium\AtriumServiceProvider;
 use JayI\Cortex\CortexServiceProvider;
 use Laravel\Ai\AiServiceProvider;
 use Laravel\Mcp\Server\McpServiceProvider;

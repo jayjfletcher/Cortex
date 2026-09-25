@@ -1,7 +1,7 @@
 laravel: '@testbench'
 
 providers:
-  - Atrium\Atrium\AtriumServiceProvider
+  - JayI\Atrium\AtriumServiceProvider
   - JayI\Cortex\CortexServiceProvider
   - Dedoc\Scramble\ScrambleServiceProvider
   - Workbench\App\Providers\WorkbenchServiceProvider

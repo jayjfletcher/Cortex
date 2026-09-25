@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace JayI\Cortex;
 
-use Atrium\Atrium\Facades\Atrium;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use JayI\Atrium\Facades\Atrium;
 use JayI\Cortex\Atrium\CortexPlugin;
 use JayI\Cortex\Console\Commands\CortexCommand;
 use JayI\Cortex\Mcp\CortexServer;

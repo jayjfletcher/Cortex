@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Atrium\Atrium\Navigation\NavItem;
-use Atrium\Atrium\Plugins\PluginRegistry;
 use Illuminate\Support\Facades\Route;
+use JayI\Atrium\Navigation\NavItem;
+use JayI\Atrium\Plugins\PluginRegistry;
 use JayI\Cortex\Atrium\CortexPlugin;
 
 it('registers itself with atrium', function (): void {
