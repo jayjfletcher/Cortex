@@ -11,6 +11,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class PublishPromptVersionMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('publish', $this->version());
+    }
+
     protected function rules(): array
     {
         return [

@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\AgentResource;
 
 final class ShowAgentRequest extends AgentRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('view', $this->agent());
+    }
+
     public function rules(): array
     {
         return ShowAgentAction::rules();

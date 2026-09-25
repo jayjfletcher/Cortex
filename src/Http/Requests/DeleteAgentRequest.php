@@ -9,6 +9,11 @@ use JayI\Cortex\Actions\DeleteAgentAction;
 
 final class DeleteAgentRequest extends AgentRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('delete', $this->agent());
+    }
+
     public function persist(): Response
     {
         app(DeleteAgentAction::class)->execute($this->agent());

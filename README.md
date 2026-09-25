@@ -70,11 +70,22 @@ return [
         // 'search' => \App\Ai\Tools\SearchTool::class,
         // \App\Mcp\Tools\LookupTool::class,
     ],
+    'policies' => [
+        // Agent::class => AgentPolicy::class, ... one entry per Cortex model
+    ],
 ];
 ```
 
 > [!WARNING]
 > The API routes, dashboard, and MCP server manage **and execute** agents. The MCP transports are disabled by default, the API carries only the `api` middleware group, and the dashboard carries only `web`. Before exposing any of them in production, add authentication — e.g. `'middleware' => ['api', 'auth:sanctum']` for the routes, `'middleware' => ['web', 'auth']` for the dashboard, and `'middleware' => ['auth:sanctum']` for the MCP web transport.
+
+## Authorization
+
+Every API endpoint and MCP tool that touches a model checks it through the Gate, using the policies in `cortex.policies`. It checks as the signed-in user, or as a guest when nobody is signed in. Listing or creating checks `viewAny` or `create` against the model class. Reading, changing, deleting, publishing or running checks `view`, `update`, `delete`, `publish` or `run` against the record.
+
+Cortex records have no owner, so the bundled policies allow everything and your middleware stays the gate, as before. Version policies defer to their prompt or override through the Gate: reading a version needs `view` on it, adding or publishing one needs `update`. Point a model at your own policy class in `cortex.policies` to restrict it.
+
+**Full guide:** [Policies](docs/policies.md). It covers what each endpoint and MCP tool checks, and how to replace a policy.
 
 ## Dashboard
 
@@ -214,6 +225,14 @@ Cortex::servers()->register('support', \App\Mcp\SupportServer::class);
 ```
 
 For the published override to actually be served to MCP clients, the server class must extend `JayI\Cortex\Mcp\Server` (or use the `JayI\Cortex\Mcp\Concerns\HasVersionedInstructions` trait if it cannot change its base class). Unregistered servers, and servers with no published version, keep serving their code-declared instructions.
+
+## Events
+
+- **Model events:** every Eloquent hook of every Cortex model fires its own class, such as `PromptCreatingEvent`, `AgentDeletedEvent` or `PromptVersionSavedEvent`.
+- **Action events:** every action fires a start and a finish event, such as `PromptVersionPublishingActionEvent` and `PromptVersionPublishedActionEvent`, or `AgentRunningActionEvent` and `AgentRanActionEvent`. The start event fires before the work. The finish event fires after the transaction commits, and only on success.
+- **Listening to a whole family:** listen to `ModelLifecycleEvent`, `ActionStartingEvent` or `ActionFinishedEvent` (in `JayI\Cortex\Contracts`) to receive every event of that family.
+
+**Full guide:** [Events](docs/events.md). It lists every action with its two events and what they carry.
 
 ## TypeScript SDK
 

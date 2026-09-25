@@ -7,10 +7,16 @@ namespace JayI\Cortex\Mcp\Requests;
 use JayI\Cortex\Actions\ListPromptsAction;
 use JayI\Cortex\Http\Resources\PromptResource;
 use JayI\Cortex\Mcp\Request;
+use JayI\Cortex\Models\Prompt;
 use Laravel\Mcp\ResponseFactory;
 
 final class ListPromptsMcpRequest extends Request
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('viewAny', Prompt::class);
+    }
+
     protected function rules(): array
     {
         return ListPromptsAction::rules();

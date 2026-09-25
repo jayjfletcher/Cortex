@@ -6,6 +6,7 @@ namespace JayI\Cortex\Http\Requests;
 
 use JayI\Cortex\Http\Request;
 use JayI\Cortex\Models\Prompt;
+use JayI\Cortex\Models\PromptVersion;
 
 abstract class PromptRequest extends Request
 {
@@ -18,5 +19,14 @@ abstract class PromptRequest extends Request
         }
 
         return $prompt;
+    }
+
+    /**
+     * The version named in the route.
+     */
+    protected function version(): PromptVersion
+    {
+        /** @var PromptVersion */
+        return $this->prompt()->versions()->where('version', (int) $this->route('version'))->firstOrFail();
     }
 }

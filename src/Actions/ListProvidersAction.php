@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Actions;
 
+use JayI\Cortex\Events\Action\ProvidersListedActionEvent;
+use JayI\Cortex\Events\Action\ProvidersListingActionEvent;
 use Laravel\Ai\AiManager;
 use Throwable;
 
@@ -29,6 +31,26 @@ final class ListProvidersAction
      * @return list<array{name: string, models: list<string>, default_model: string|null}>
      */
     public function execute(): array
+    {
+        ProvidersListingActionEvent::dispatch();
+
+        $result = $this->perform();
+
+        ProvidersListedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    /**
+     * List the providers (and their selectable models) agents can run on.
+     *
+     * The `cortex.providers` config is authoritative when set; otherwise every
+     * text-capable provider configured for laravel/ai is offered with the
+     * models it declares (default, smartest, cheapest).
+     *
+     * @return list<array{name: string, models: list<string>, default_model: string|null}>
+     */
+    private function perform(): array
     {
         /** @var array<string, array<int, string>> $configured */
         $configured = (array) config('cortex.providers', []);

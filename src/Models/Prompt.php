@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use JayI\Cortex\Database\Factories\PromptFactory;
+use JayI\Cortex\Models\Concerns\DispatchesModelEvents;
 
 /**
  * @property string $id
@@ -23,9 +24,10 @@ use JayI\Cortex\Database\Factories\PromptFactory;
  */
 final class Prompt extends Model
 {
+    use DispatchesModelEvents;
+
     /** @use HasFactory<PromptFactory> */
     use HasFactory;
-
     use HasUlids;
 
     protected $table = 'cortex_prompts';

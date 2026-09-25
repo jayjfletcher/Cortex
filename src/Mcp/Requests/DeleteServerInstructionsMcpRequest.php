@@ -9,6 +9,11 @@ use Laravel\Mcp\Response;
 
 final class DeleteServerInstructionsMcpRequest extends ServerMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('delete', $this->instruction());
+    }
+
     protected function rules(): array
     {
         return [

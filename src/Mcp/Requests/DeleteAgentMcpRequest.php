@@ -9,6 +9,11 @@ use Laravel\Mcp\Response;
 
 final class DeleteAgentMcpRequest extends AgentMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('delete', $this->agent());
+    }
+
     protected function rules(): array
     {
         return [

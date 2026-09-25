@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\ToolDescriptionResource;
 
 final class ShowToolDescriptionRequest extends ToolDescriptionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('view', $this->description());
+    }
+
     public function persist(): JsonResponse
     {
         $description = app(ShowToolDescriptionAction::class)->execute($this->tool());

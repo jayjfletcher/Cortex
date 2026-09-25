@@ -7,6 +7,7 @@ namespace JayI\Cortex\Http\Requests;
 use JayI\Cortex\Http\Request;
 use JayI\Cortex\Mcp\McpServerRegistry;
 use JayI\Cortex\Models\McpInstruction;
+use JayI\Cortex\Models\McpInstructionVersion;
 
 abstract class McpInstructionRequest extends Request
 {
@@ -35,5 +36,23 @@ abstract class McpInstructionRequest extends Request
         }
 
         return $instruction;
+    }
+
+    /**
+     * The version named in the route.
+     */
+    protected function version(): McpInstructionVersion
+    {
+        /** @var McpInstructionVersion */
+        return $this->instruction()->versions()->where('version', (int) $this->route('version'))->firstOrFail();
+    }
+
+    /**
+     * The override for the server, or an unsaved one when no version exists yet, so
+     * creating the first version is checked against the same policy.
+     */
+    protected function instructionOrNew(): McpInstruction
+    {
+        return McpInstruction::query()->firstOrNew(['server' => $this->serverName()]);
     }
 }

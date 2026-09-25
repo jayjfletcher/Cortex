@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\PromptResource;
 
 final class PublishPromptVersionRequest extends PromptRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('publish', $this->version());
+    }
+
     public function rules(): array
     {
         return PublishPromptVersionAction::rules();

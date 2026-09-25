@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Actions;
 
+use JayI\Cortex\Events\Action\PromptVersionShowingActionEvent;
+use JayI\Cortex\Events\Action\PromptVersionShownActionEvent;
 use JayI\Cortex\Models\Prompt;
 use JayI\Cortex\Models\PromptVersion;
 
@@ -18,6 +20,17 @@ final class ShowPromptVersionAction
     }
 
     public function execute(Prompt $prompt, int $version): PromptVersion
+    {
+        PromptVersionShowingActionEvent::dispatch($prompt, $version);
+
+        $result = $this->perform($prompt, $version);
+
+        PromptVersionShownActionEvent::dispatch($prompt, $result);
+
+        return $result;
+    }
+
+    private function perform(Prompt $prompt, int $version): PromptVersion
     {
         /** @var PromptVersion */
         return $prompt->versions()->where('version', $version)->firstOrFail();

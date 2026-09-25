@@ -7,6 +7,8 @@ namespace JayI\Cortex\Actions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use JayI\Cortex\Actions\Concerns\ResolvesAgentReferences;
+use JayI\Cortex\Events\Action\AgentCreatedActionEvent;
+use JayI\Cortex\Events\Action\AgentCreatingActionEvent;
 use JayI\Cortex\Models\Agent;
 use JayI\Cortex\Tools\ToolRegistry;
 
@@ -43,6 +45,20 @@ final class CreateAgentAction
      * @param  array<string, mixed>  $data
      */
     public function execute(array $data): Agent
+    {
+        AgentCreatingActionEvent::dispatch($data);
+
+        $result = $this->perform($data);
+
+        AgentCreatedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function perform(array $data): Agent
     {
         return DB::transaction(function () use ($data): Agent {
             $agent = Agent::query()->create([

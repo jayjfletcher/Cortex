@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace JayI\Cortex\Actions;
 
 use Illuminate\Support\Facades\DB;
+use JayI\Cortex\Events\Action\McpInstructionVersionCreatedActionEvent;
+use JayI\Cortex\Events\Action\McpInstructionVersionCreatingActionEvent;
 use JayI\Cortex\Models\McpInstruction;
 use JayI\Cortex\Models\McpInstructionVersion;
 use JayI\Cortex\Support\PublicationCache;
@@ -28,6 +30,20 @@ final class CreateMcpInstructionVersionAction
      * @param  array<string, mixed>  $data
      */
     public function execute(string $server, array $data): McpInstructionVersion
+    {
+        McpInstructionVersionCreatingActionEvent::dispatch($server, $data);
+
+        $result = $this->perform($server, $data);
+
+        McpInstructionVersionCreatedActionEvent::dispatch($server, $result);
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function perform(string $server, array $data): McpInstructionVersion
     {
         return DB::transaction(function () use ($server, $data): McpInstructionVersion {
             /** @var McpInstruction $instruction */

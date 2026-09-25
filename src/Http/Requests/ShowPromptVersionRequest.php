@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\PromptVersionResource;
 
 final class ShowPromptVersionRequest extends PromptRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('view', $this->version());
+    }
+
     public function rules(): array
     {
         return ShowPromptVersionAction::rules();

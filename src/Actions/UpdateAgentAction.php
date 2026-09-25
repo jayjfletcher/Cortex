@@ -7,6 +7,8 @@ namespace JayI\Cortex\Actions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use JayI\Cortex\Actions\Concerns\ResolvesAgentReferences;
+use JayI\Cortex\Events\Action\AgentUpdatedActionEvent;
+use JayI\Cortex\Events\Action\AgentUpdatingActionEvent;
 use JayI\Cortex\Models\Agent;
 use JayI\Cortex\Tools\ToolRegistry;
 
@@ -42,6 +44,20 @@ final class UpdateAgentAction
      * @param  array<string, mixed>  $data
      */
     public function execute(Agent $agent, array $data): Agent
+    {
+        AgentUpdatingActionEvent::dispatch($agent, $data);
+
+        $result = $this->perform($agent, $data);
+
+        AgentUpdatedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function perform(Agent $agent, array $data): Agent
     {
         return DB::transaction(function () use ($agent, $data): Agent {
             $agent->fill([

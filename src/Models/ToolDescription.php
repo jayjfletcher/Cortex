@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use JayI\Cortex\Database\Factories\ToolDescriptionFactory;
+use JayI\Cortex\Models\Concerns\DispatchesModelEvents;
 
 /**
  * A versioned description override for a registered tool, keyed by the
@@ -25,9 +26,10 @@ use JayI\Cortex\Database\Factories\ToolDescriptionFactory;
  */
 final class ToolDescription extends Model
 {
+    use DispatchesModelEvents;
+
     /** @use HasFactory<ToolDescriptionFactory> */
     use HasFactory;
-
     use HasUlids;
 
     protected $table = 'cortex_tool_descriptions';

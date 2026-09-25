@@ -16,6 +16,10 @@
 - `JayI\Cortex\Mcp\Server` base class and `HasVersionedInstructions` trait so any Laravel MCP server can serve its published instruction override.
 - REST endpoints under `/cortex/servers` for listing servers and managing instruction overrides, six matching MCP tools on `CortexServer` (now 22 tools), and a Servers section in the dashboard with a versioned instructions editor.
 
+- Model events: every Eloquent hook of every Cortex model dispatches its own class in `JayI\Cortex\Events\Model` (`{Model}{Hook}Event`, e.g. `PromptVersionCreatedEvent`) through the `DispatchesModelEvents` trait. All implement `JayI\Cortex\Contracts\ModelLifecycleEvent`.
+- Action events: every action dispatches a start event before its work and a finish event with its result (`JayI\Cortex\Events\Action`, e.g. `AgentRunningActionEvent` / `AgentRanActionEvent`). Start events implement `ActionStartingEvent`. Finish events implement `ActionFinishedEvent`, dispatch after commit and are skipped when the action throws. See `docs/events.md`.
+- Policies for every model (`JayI\Cortex\Policies`), registered with the Gate from the new `cortex.policies` config. Every API endpoint and MCP tool that touches a model now authorizes through them, as the signed-in user or as a guest. The bundled policies allow everything, since Cortex records have no owner, so existing behaviour is unchanged. Version policies defer to their prompt or override through the Gate. See `docs/policies.md`.
+
 ### Fixed
 
 - Agents calling an MCP tool whose `handle()` type-hints its own `Laravel\Mcp\Request` subclass now pass their arguments to it. Previously laravel/ai's `McpServerTool` bound the arguments only as the base request, so such tools, including Cortex's own MCP tools, received an empty request and failed validation.

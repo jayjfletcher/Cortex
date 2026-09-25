@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\PromptResource;
 
 final class UpdatePromptRequest extends PromptRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('update', $this->prompt());
+    }
+
     public function rules(): array
     {
         return UpdatePromptAction::rules();

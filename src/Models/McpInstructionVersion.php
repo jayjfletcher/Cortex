@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use JayI\Cortex\Database\Factories\McpInstructionVersionFactory;
+use JayI\Cortex\Models\Concerns\DispatchesModelEvents;
 use LogicException;
 
 /**
@@ -22,9 +23,10 @@ use LogicException;
  */
 final class McpInstructionVersion extends Model
 {
+    use DispatchesModelEvents;
+
     /** @use HasFactory<McpInstructionVersionFactory> */
     use HasFactory;
-
     use HasUlids;
 
     protected $table = 'cortex_mcp_instruction_versions';

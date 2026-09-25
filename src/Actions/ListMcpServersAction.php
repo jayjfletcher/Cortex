@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Actions;
 
+use JayI\Cortex\Events\Action\McpServersListedActionEvent;
+use JayI\Cortex\Events\Action\McpServersListingActionEvent;
 use JayI\Cortex\Mcp\McpServerRegistry;
 use Laravel\Mcp\Server as McpServer;
 
@@ -23,6 +25,20 @@ final class ListMcpServersAction
      * @return list<array{name: string, class: class-string<McpServer>, instructions: string}>
      */
     public function execute(): array
+    {
+        McpServersListingActionEvent::dispatch();
+
+        $result = $this->perform();
+
+        McpServersListedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    /**
+     * @return list<array{name: string, class: class-string<McpServer>, instructions: string}>
+     */
+    private function perform(): array
     {
         return $this->registry->all();
     }

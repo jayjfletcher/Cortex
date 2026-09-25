@@ -49,6 +49,8 @@ The API routes, dashboard, and MCP server manage **and execute** agents. MCP tra
 ],
 ```
 
+Every API endpoint and MCP tool that touches a model is also checked through the Gate against `cortex.policies`, as the signed-in user or as a guest. Cortex records have no owner, so the bundled policies allow everything and the middleware stays the gate. To restrict something, extend the bundled policy (e.g. `JayI\Cortex\Policies\PromptPolicy`), override the ability (`update`, `delete`, `publish`, `run`, ...) and point the model at it in `cortex.policies`. Version policies defer to their prompt or override: `view` to read, `update` to add or publish. Type the user parameter as non-nullable to refuse guests.
+
 ### 3. Enable the dashboard (optional)
 
 A prebuilt dashboard (prompts, agents, run playground, tools, tool description overrides, MCP server instruction overrides) mounts at `/cortex/ui`. Publish its compiled assets — no npm build in the app:
@@ -126,7 +128,13 @@ Cortex::agent('coordinator')->stream('...'); // full laravel/ai agent
 
 Provider/model/settings fall back to the app's `config/ai.php` defaults when unset on the agent.
 
-### 7. Test the integration
+### 7. React to changes
+
+- Model events: one class per Eloquent hook per model, e.g. `JayI\Cortex\Events\Model\PromptVersionCreatedEvent` (`$event->version`).
+- Action events: a start and a finish event per action, e.g. `PromptVersionPublishingActionEvent` then `PromptVersionPublishedActionEvent` (`$event->prompt`), or `AgentRunningActionEvent` then `AgentRanActionEvent` (`$event->agent`, `$event->input`, `$event->response`). Finish events fire after commit and only on success.
+- Listen to `JayI\Cortex\Contracts\ActionFinishedEvent` or `ModelLifecycleEvent` to see a whole family. In tests, fake only the events you assert on: `Event::fake([PromptVersionPublishedActionEvent::class])`.
+
+### 8. Test the integration
 
 ```php
 use JayI\Cortex\Runtime\DbAgent;
@@ -142,7 +150,9 @@ Always fake — unfaked runs require a configured AI provider.
 
 Read before executing:
 
-- `config/cortex.php` — routes, dashboard, MCP transports, cache, providers, tools
+- `config/cortex.php` — routes, dashboard, MCP transports, cache, providers, tools, policies
+- `docs/policies.md` — which ability each endpoint and MCP tool checks
+- `docs/events.md` — every action with its start and finish events
 - `README.md` — full route table, auth modes, and payload examples
 
 ## Examples

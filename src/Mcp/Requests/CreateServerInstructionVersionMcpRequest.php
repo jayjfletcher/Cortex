@@ -7,11 +7,17 @@ namespace JayI\Cortex\Mcp\Requests;
 use Illuminate\Support\Arr;
 use JayI\Cortex\Actions\CreateMcpInstructionVersionAction;
 use JayI\Cortex\Http\Resources\McpInstructionVersionResource;
+use JayI\Cortex\Models\McpInstructionVersion;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 
 final class CreateServerInstructionVersionMcpRequest extends ServerMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('create', McpInstructionVersion::class, [$this->instructionOrNew()]);
+    }
+
     protected function rules(): array
     {
         return [

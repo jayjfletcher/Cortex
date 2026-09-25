@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use JayI\Cortex\Database\Factories\McpInstructionFactory;
+use JayI\Cortex\Models\Concerns\DispatchesModelEvents;
 
 /**
  * A versioned instructions override for a registered MCP server, keyed by
@@ -25,9 +26,10 @@ use JayI\Cortex\Database\Factories\McpInstructionFactory;
  */
 final class McpInstruction extends Model
 {
+    use DispatchesModelEvents;
+
     /** @use HasFactory<McpInstructionFactory> */
     use HasFactory;
-
     use HasUlids;
 
     protected $table = 'cortex_mcp_instructions';

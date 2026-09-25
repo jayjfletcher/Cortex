@@ -12,6 +12,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class UpdateAgentMcpRequest extends AgentMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('update', $this->agent());
+    }
+
     protected function rules(): array
     {
         return [

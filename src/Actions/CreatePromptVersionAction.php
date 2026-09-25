@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace JayI\Cortex\Actions;
 
 use Illuminate\Support\Facades\DB;
+use JayI\Cortex\Events\Action\PromptVersionCreatedActionEvent;
+use JayI\Cortex\Events\Action\PromptVersionCreatingActionEvent;
 use JayI\Cortex\Models\Prompt;
 use JayI\Cortex\Models\PromptVersion;
 use JayI\Cortex\Support\PublicationCache;
@@ -28,6 +30,20 @@ final class CreatePromptVersionAction
      * @param  array<string, mixed>  $data
      */
     public function execute(Prompt $prompt, array $data): PromptVersion
+    {
+        PromptVersionCreatingActionEvent::dispatch($prompt, $data);
+
+        $result = $this->perform($prompt, $data);
+
+        PromptVersionCreatedActionEvent::dispatch($prompt, $result);
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function perform(Prompt $prompt, array $data): PromptVersion
     {
         return DB::transaction(function () use ($prompt, $data): PromptVersion {
             /** @var PromptVersion $version */

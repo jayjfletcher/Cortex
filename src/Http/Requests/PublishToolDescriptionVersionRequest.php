@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\ToolDescriptionResource;
 
 final class PublishToolDescriptionVersionRequest extends ToolDescriptionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('publish', $this->version());
+    }
+
     public function persist(): JsonResponse
     {
         $description = app(PublishToolDescriptionVersionAction::class)->execute(

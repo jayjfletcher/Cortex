@@ -2,6 +2,21 @@
 
 declare(strict_types=1);
 
+use JayI\Cortex\Models\Agent;
+use JayI\Cortex\Models\McpInstruction;
+use JayI\Cortex\Models\McpInstructionVersion;
+use JayI\Cortex\Models\Prompt;
+use JayI\Cortex\Models\PromptVersion;
+use JayI\Cortex\Models\ToolDescription;
+use JayI\Cortex\Models\ToolDescriptionVersion;
+use JayI\Cortex\Policies\AgentPolicy;
+use JayI\Cortex\Policies\McpInstructionPolicy;
+use JayI\Cortex\Policies\McpInstructionVersionPolicy;
+use JayI\Cortex\Policies\PromptPolicy;
+use JayI\Cortex\Policies\PromptVersionPolicy;
+use JayI\Cortex\Policies\ToolDescriptionPolicy;
+use JayI\Cortex\Policies\ToolDescriptionVersionPolicy;
+
 return [
 
     /*
@@ -18,6 +33,31 @@ return [
     'routes' => [
         'prefix' => 'cortex',
         'middleware' => ['api'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Policies
+    |--------------------------------------------------------------------------
+    |
+    | The policy the Gate uses for each model. The JSON API and MCP tools
+    | check every call against these, as the authenticated user (or as a
+    | guest when nobody is signed in). Cortex records have no owner, so the
+    | bundled policies allow everything and your route middleware stays the
+    | gate, as before. Versions defer to their prompt or override: reading
+    | one needs `view` on it, adding or publishing one needs `update`.
+    | Point a model at your own class to replace its policy.
+    |
+    */
+
+    'policies' => [
+        Agent::class => AgentPolicy::class,
+        Prompt::class => PromptPolicy::class,
+        PromptVersion::class => PromptVersionPolicy::class,
+        ToolDescription::class => ToolDescriptionPolicy::class,
+        ToolDescriptionVersion::class => ToolDescriptionVersionPolicy::class,
+        McpInstruction::class => McpInstructionPolicy::class,
+        McpInstructionVersion::class => McpInstructionVersionPolicy::class,
     ],
 
     /*

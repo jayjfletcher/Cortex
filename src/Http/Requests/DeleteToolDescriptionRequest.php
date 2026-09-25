@@ -9,6 +9,11 @@ use JayI\Cortex\Actions\DeleteToolDescriptionAction;
 
 final class DeleteToolDescriptionRequest extends ToolDescriptionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('delete', $this->description());
+    }
+
     public function persist(): Response
     {
         app(DeleteToolDescriptionAction::class)->execute($this->description());

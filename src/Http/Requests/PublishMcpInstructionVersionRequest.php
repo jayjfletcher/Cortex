@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\McpInstructionResource;
 
 final class PublishMcpInstructionVersionRequest extends McpInstructionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('publish', $this->version());
+    }
+
     public function persist(): JsonResponse
     {
         $instruction = app(PublishMcpInstructionVersionAction::class)->execute(

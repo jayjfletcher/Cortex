@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\PromptResource;
 
 final class ShowPromptRequest extends PromptRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('view', $this->prompt());
+    }
+
     public function rules(): array
     {
         return ShowPromptAction::rules();

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Mcp;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Mcp\Request as McpRequest;
 use Laravel\Mcp\Response;
@@ -60,11 +62,24 @@ abstract class Request extends McpRequest
     }
 
     /**
-     * Authorize the tool call. Override for policy checks.
+     * Authorize the tool call. Requests that touch a model override this to
+     * check it against the policies in `cortex.policies`.
      */
     protected function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * Check an ability against the model's policy from `cortex.policies`, as
+     * the authenticated user or as a guest.
+     *
+     * @param  Model|class-string<Model>  $subject
+     * @param  array<int, mixed>  $arguments
+     */
+    protected function allows(string $ability, Model|string $subject, array $arguments = []): bool
+    {
+        return Gate::forUser($this->user())->allows($ability, [$subject, ...$arguments]);
     }
 
     /**

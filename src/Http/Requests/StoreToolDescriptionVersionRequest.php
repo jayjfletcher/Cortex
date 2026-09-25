@@ -7,9 +7,15 @@ namespace JayI\Cortex\Http\Requests;
 use Illuminate\Http\JsonResponse;
 use JayI\Cortex\Actions\CreateToolDescriptionVersionAction;
 use JayI\Cortex\Http\Resources\ToolDescriptionVersionResource;
+use JayI\Cortex\Models\ToolDescriptionVersion;
 
 final class StoreToolDescriptionVersionRequest extends ToolDescriptionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('create', ToolDescriptionVersion::class, [$this->descriptionOrNew()]);
+    }
+
     public function rules(): array
     {
         return CreateToolDescriptionVersionAction::rules();

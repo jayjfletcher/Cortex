@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Actions;
 
+use JayI\Cortex\Events\Action\McpInstructionVersionPublishedActionEvent;
+use JayI\Cortex\Events\Action\McpInstructionVersionPublishingActionEvent;
 use JayI\Cortex\Models\McpInstruction;
 use JayI\Cortex\Models\McpInstructionVersion;
 use JayI\Cortex\Support\PublicationCache;
@@ -21,6 +23,17 @@ final class PublishMcpInstructionVersionAction
     }
 
     public function execute(McpInstruction $instruction, int $version): McpInstruction
+    {
+        McpInstructionVersionPublishingActionEvent::dispatch($instruction, $version);
+
+        $result = $this->perform($instruction, $version);
+
+        McpInstructionVersionPublishedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    private function perform(McpInstruction $instruction, int $version): McpInstruction
     {
         /** @var McpInstructionVersion $instructionVersion */
         $instructionVersion = $instruction->versions()->where('version', $version)->firstOrFail();

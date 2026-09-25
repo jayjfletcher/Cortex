@@ -9,6 +9,11 @@ use JayI\Cortex\Actions\DeleteMcpInstructionAction;
 
 final class DeleteMcpInstructionRequest extends McpInstructionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('delete', $this->instruction());
+    }
+
     public function persist(): Response
     {
         app(DeleteMcpInstructionAction::class)->execute($this->instruction());

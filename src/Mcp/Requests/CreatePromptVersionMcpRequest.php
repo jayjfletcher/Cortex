@@ -7,11 +7,17 @@ namespace JayI\Cortex\Mcp\Requests;
 use Illuminate\Support\Arr;
 use JayI\Cortex\Actions\CreatePromptVersionAction;
 use JayI\Cortex\Http\Resources\PromptVersionResource;
+use JayI\Cortex\Models\PromptVersion;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 
 final class CreatePromptVersionMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('create', PromptVersion::class, [$this->prompt()]);
+    }
+
     protected function rules(): array
     {
         return [

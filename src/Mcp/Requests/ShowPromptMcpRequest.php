@@ -11,6 +11,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class ShowPromptMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('view', $this->prompt());
+    }
+
     protected function rules(): array
     {
         return [

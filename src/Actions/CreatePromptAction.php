@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace JayI\Cortex\Actions;
 
 use Illuminate\Support\Facades\DB;
+use JayI\Cortex\Events\Action\PromptCreatedActionEvent;
+use JayI\Cortex\Events\Action\PromptCreatingActionEvent;
 use JayI\Cortex\Models\Prompt;
 
 final class CreatePromptAction
@@ -27,6 +29,20 @@ final class CreatePromptAction
      * @param  array<string, mixed>  $data
      */
     public function execute(array $data): Prompt
+    {
+        PromptCreatingActionEvent::dispatch($data);
+
+        $result = $this->perform($data);
+
+        PromptCreatedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function perform(array $data): Prompt
     {
         return DB::transaction(function () use ($data): Prompt {
             $prompt = Prompt::query()->create([

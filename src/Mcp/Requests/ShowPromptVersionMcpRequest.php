@@ -11,6 +11,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class ShowPromptVersionMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('view', $this->version());
+    }
+
     protected function rules(): array
     {
         return [

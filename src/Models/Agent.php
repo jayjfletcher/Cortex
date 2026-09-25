@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use JayI\Cortex\Database\Factories\AgentFactory;
+use JayI\Cortex\Models\Concerns\DispatchesModelEvents;
 
 /**
  * @property string $id
@@ -28,9 +29,10 @@ use JayI\Cortex\Database\Factories\AgentFactory;
  */
 final class Agent extends Model
 {
+    use DispatchesModelEvents;
+
     /** @use HasFactory<AgentFactory> */
     use HasFactory;
-
     use HasUlids;
 
     protected $table = 'cortex_agents';

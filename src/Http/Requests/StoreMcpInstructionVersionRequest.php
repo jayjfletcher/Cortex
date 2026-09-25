@@ -7,9 +7,15 @@ namespace JayI\Cortex\Http\Requests;
 use Illuminate\Http\JsonResponse;
 use JayI\Cortex\Actions\CreateMcpInstructionVersionAction;
 use JayI\Cortex\Http\Resources\McpInstructionVersionResource;
+use JayI\Cortex\Models\McpInstructionVersion;
 
 final class StoreMcpInstructionVersionRequest extends McpInstructionRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('create', McpInstructionVersion::class, [$this->instructionOrNew()]);
+    }
+
     public function rules(): array
     {
         return CreateMcpInstructionVersionAction::rules();

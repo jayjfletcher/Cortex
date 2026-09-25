@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\AgentResource;
 
 final class UpdateAgentRequest extends AgentRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('update', $this->agent());
+    }
+
     public function rules(): array
     {
         return UpdateAgentAction::rules();

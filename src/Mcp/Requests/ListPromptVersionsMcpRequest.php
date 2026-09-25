@@ -6,10 +6,16 @@ namespace JayI\Cortex\Mcp\Requests;
 
 use JayI\Cortex\Actions\ListPromptVersionsAction;
 use JayI\Cortex\Http\Resources\PromptVersionResource;
+use JayI\Cortex\Models\PromptVersion;
 use Laravel\Mcp\ResponseFactory;
 
 final class ListPromptVersionsMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('viewAny', PromptVersion::class, [$this->prompt()]);
+    }
+
     protected function rules(): array
     {
         return [

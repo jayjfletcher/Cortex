@@ -11,6 +11,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class ShowServerInstructionsMcpRequest extends ServerMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('view', $this->instruction());
+    }
+
     protected function rules(): array
     {
         return [

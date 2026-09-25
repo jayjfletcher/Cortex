@@ -6,10 +6,16 @@ namespace JayI\Cortex\Mcp\Requests;
 
 use JayI\Cortex\Actions\ListMcpInstructionVersionsAction;
 use JayI\Cortex\Http\Resources\McpInstructionVersionResource;
+use JayI\Cortex\Models\McpInstructionVersion;
 use Laravel\Mcp\ResponseFactory;
 
 final class ListServerInstructionVersionsMcpRequest extends ServerMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('viewAny', McpInstructionVersion::class, [$this->instruction()]);
+    }
+
     protected function rules(): array
     {
         return [

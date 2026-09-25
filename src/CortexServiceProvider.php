@@ -6,6 +6,7 @@ namespace JayI\Cortex;
 
 use Atrium\Atrium\Facades\Atrium;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use JayI\Cortex\Atrium\CortexPlugin;
 use JayI\Cortex\Console\Commands\CortexCommand;
@@ -68,6 +69,8 @@ class CortexServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerPolicies();
+
         $this->loadRoutesFrom(__DIR__.'/../routes/cortex.php');
 
         $this->registerAtriumPlugin();
@@ -105,6 +108,20 @@ class CortexServiceProvider extends ServiceProvider
         $this->commands([
             CortexCommand::class,
         ]);
+    }
+
+    /**
+     * Register the policy for each model from `cortex.policies`, so the JSON
+     * API and MCP tools, and the application's own `can()` checks, share them.
+     */
+    private function registerPolicies(): void
+    {
+        /** @var array<class-string, class-string> $policies */
+        $policies = $this->app->make('config')->get('cortex.policies', []);
+
+        foreach ($policies as $model => $policy) {
+            Gate::policy($model, $policy);
+        }
     }
 
     /**

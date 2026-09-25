@@ -9,6 +9,11 @@ use Laravel\Mcp\Response;
 
 final class DeletePromptMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('delete', $this->prompt());
+    }
+
     protected function rules(): array
     {
         return [

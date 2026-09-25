@@ -12,6 +12,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class UpdatePromptMcpRequest extends PromptMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('update', $this->prompt());
+    }
+
     protected function rules(): array
     {
         return [

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace JayI\Cortex\Actions;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use JayI\Cortex\Events\Action\PromptsListedActionEvent;
+use JayI\Cortex\Events\Action\PromptsListingActionEvent;
 use JayI\Cortex\Models\Prompt;
 
 final class ListPromptsAction
@@ -23,6 +25,20 @@ final class ListPromptsAction
      * @return LengthAwarePaginator<int, Prompt>
      */
     public function execute(?int $page = null): LengthAwarePaginator
+    {
+        PromptsListingActionEvent::dispatch($page);
+
+        $result = $this->perform($page);
+
+        PromptsListedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, Prompt>
+     */
+    private function perform(?int $page = null): LengthAwarePaginator
     {
         return Prompt::query()
             ->with('publishedVersion')

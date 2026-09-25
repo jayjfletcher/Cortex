@@ -8,9 +8,15 @@ use Illuminate\Http\JsonResponse;
 use JayI\Cortex\Actions\ListAgentsAction;
 use JayI\Cortex\Http\Request;
 use JayI\Cortex\Http\Resources\AgentResource;
+use JayI\Cortex\Models\Agent;
 
 final class IndexAgentsRequest extends Request
 {
+    public function authorize(): bool
+    {
+        return $this->allows('viewAny', Agent::class);
+    }
+
     public function rules(): array
     {
         return ListAgentsAction::rules();

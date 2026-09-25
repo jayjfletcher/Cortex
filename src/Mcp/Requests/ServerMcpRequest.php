@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use JayI\Cortex\Mcp\McpServerRegistry;
 use JayI\Cortex\Mcp\Request;
 use JayI\Cortex\Models\McpInstruction;
+use JayI\Cortex\Models\McpInstructionVersion;
 
 abstract class ServerMcpRequest extends Request
 {
@@ -33,5 +34,23 @@ abstract class ServerMcpRequest extends Request
         return $this->instruction ??= McpInstruction::query()
             ->where('server', $this->serverName())
             ->firstOrFail();
+    }
+
+    /**
+     * The version named in the input.
+     */
+    protected function version(): McpInstructionVersion
+    {
+        /** @var McpInstructionVersion */
+        return $this->instruction()->versions()->where('version', (int) $this->get('version'))->firstOrFail();
+    }
+
+    /**
+     * The override for the server, or an unsaved one when no version exists yet, so
+     * creating the first version is checked against the same policy.
+     */
+    protected function instructionOrNew(): McpInstruction
+    {
+        return McpInstruction::query()->firstOrNew(['server' => $this->serverName()]);
     }
 }

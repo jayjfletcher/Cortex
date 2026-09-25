@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Actions;
 
+use JayI\Cortex\Events\Action\AgentShowingActionEvent;
+use JayI\Cortex\Events\Action\AgentShownActionEvent;
 use JayI\Cortex\Models\Agent;
 
 final class ShowAgentAction
@@ -17,6 +19,17 @@ final class ShowAgentAction
     }
 
     public function execute(Agent $agent): Agent
+    {
+        AgentShowingActionEvent::dispatch($agent);
+
+        $result = $this->perform($agent);
+
+        AgentShownActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    private function perform(Agent $agent): Agent
     {
         return $agent->load(['prompt', 'pinnedVersion', 'subAgents']);
     }

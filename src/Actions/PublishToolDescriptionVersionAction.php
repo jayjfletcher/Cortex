@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace JayI\Cortex\Actions;
 
+use JayI\Cortex\Events\Action\ToolDescriptionVersionPublishedActionEvent;
+use JayI\Cortex\Events\Action\ToolDescriptionVersionPublishingActionEvent;
 use JayI\Cortex\Models\ToolDescription;
 use JayI\Cortex\Models\ToolDescriptionVersion;
 use JayI\Cortex\Support\PublicationCache;
@@ -21,6 +23,17 @@ final class PublishToolDescriptionVersionAction
     }
 
     public function execute(ToolDescription $description, int $version): ToolDescription
+    {
+        ToolDescriptionVersionPublishingActionEvent::dispatch($description, $version);
+
+        $result = $this->perform($description, $version);
+
+        ToolDescriptionVersionPublishedActionEvent::dispatch($result);
+
+        return $result;
+    }
+
+    private function perform(ToolDescription $description, int $version): ToolDescription
     {
         /** @var ToolDescriptionVersion $descriptionVersion */
         $descriptionVersion = $description->versions()->where('version', $version)->firstOrFail();

@@ -10,6 +10,11 @@ use JayI\Cortex\Http\Resources\AgentRunResource;
 
 final class RunAgentRequest extends AgentRequest
 {
+    public function authorize(): bool
+    {
+        return $this->allows('run', $this->agent());
+    }
+
     public function rules(): array
     {
         return RunAgentAction::rules();

@@ -11,6 +11,11 @@ use Laravel\Mcp\ResponseFactory;
 
 final class ShowAgentMcpRequest extends AgentMcpRequest
 {
+    protected function authorize(): bool
+    {
+        return $this->allows('view', $this->agent());
+    }
+
     protected function rules(): array
     {
         return [
